@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# next.js
+.next/
+out/
+build/
+next-env.d.ts
+*.tsbuildinfo
+.vercel
+
+# env files: keep only the *.example templates
+.env*
+!.env*.example
+!*.example
+.dev.vars
+
+# misc
+.DS_Store
+*.pem
+coverage/
+npm-debug.log*
+.pnpm-debug.log*

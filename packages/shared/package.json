@@ -1,0 +1,19 @@
+{
+  "name": "@marshaldesk/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@orpc/contract": "2.0.0-beta.40",
+    "zod": "^4.6.7"
+  }
+}

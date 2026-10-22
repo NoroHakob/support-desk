@@ -4,6 +4,7 @@ This project is Norayr's build-along of Jan Marshal's MarshalDesk. Jan's documen
 
 ## 1. Who you work with
 
+- The product is called SupportDesk. Wherever the docs say MarshalDesk in user-facing text (UI copy, titles, emails, widget), use SupportDesk.
 - Wherever the docs say "Jan" (asking questions, reporting decisions, "Working with Jan"), read "Norayr". Same preferences: a recommended option first, one topic at a time.
 - Norayr is learning. After each task, give a short plain-English summary of what was built and why.
 
@@ -22,13 +23,13 @@ The Neon AI Gateway needs a paid plan, so it is **not used**. This replaces the 
 - API key: `GOOGLE_GENERATIVE_AI_API_KEY`, server-only (`apps/web` and `apps/functions`). Never `NEXT_PUBLIC_`.
 - Models, kept in `packages/shared/src/agent.ts`:
 
-  | Use                               | Model                                                          |
-  | --------------------------------- | -------------------------------------------------------------- |
-  | Classifier (`Output.object`)      | `gemini-3.8-flash`                                             |
-  | Off-topic refusals and small talk | `gemini-3.8-flash`                                             |
-  | Answers (streamed, `cannot_answer` tool) | `gemini-3.8-flash`                                      |
-  | Suggested questions               | `gemini-3.8-flash`                                             |
-  | Embeddings (chunks and queries)   | `gemini-embedding-2`, `outputDimensionality: 1024`, cosine     |
+  | Use                                      | Model                                                      |
+  | ---------------------------------------- | ---------------------------------------------------------- |
+  | Classifier (`Output.object`)             | `gemini-3.8-flash`                                         |
+  | Off-topic refusals and small talk        | `gemini-3.8-flash`                                         |
+  | Answers (streamed, `cannot_answer` tool) | `gemini-3.8-flash`                                         |
+  | Suggested questions                      | `gemini-3.8-flash`                                         |
+  | Embeddings (chunks and queries)          | `gemini-embedding-2`, `outputDimensionality: 1024`, cosine |
 
 - No Google Search grounding.
 - Reasoning effort: replace `providerOptions.openai.reasoningEffort` with the Google provider's thinking setting: the lowest level for the classifier, short replies and answers, a moderate level for suggested questions. Check the Google provider page on ai-sdk.dev for the exact option names; don't guess.

@@ -208,7 +208,7 @@ The trust row is an `AvatarGroup` of `Avatar`s, each an `ink` ring (1px `ink-lin
 
 ### Badge (`components/ui/badge.tsx`)
 
-`outline` variant restyled as an `ink` pill for short, factual claims (the trust pill).
+An added `ink` variant (an `ink` pill with an `ink-line` hairline and `shadow-soft`) for short, factual claims (the trust pill). `outline` stays the stock shadcn badge for the app.
 
 ### Dialog (`components/ui/dialog.tsx`)
 
