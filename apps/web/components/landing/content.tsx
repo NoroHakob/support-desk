@@ -39,6 +39,10 @@ export const trust: {
   label: "Answers only from your knowledge base",
 };
 
+export const authShowcase = {
+  headline: ["Support that", "knows its limits."],
+};
+
 export type Stat = {
   value: number;
   prefix?: string;

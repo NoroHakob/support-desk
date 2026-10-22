@@ -1,9 +1,21 @@
-export default function DashboardPage() {
+import { PageHeader } from "@/components/dashboard/page-header";
+import { PlaceholderPanel } from "@/components/dashboard/placeholder-panel";
+import { WorkspaceName } from "@/components/dashboard/workspace-name";
+
+export default function HomePage() {
   return (
-    <main className="flex flex-1 items-center justify-center p-6">
-      <h1 className="text-3xl font-semibold tracking-tight">
-        Hello from the dashboard
-      </h1>
-    </main>
+    <>
+      <PageHeader
+        title="Home"
+        description={
+          <>
+            Everything for <WorkspaceName /> in one place.
+          </>
+        }
+      />
+      <PlaceholderPanel>
+        Your widget settings and setup checklist will live here.
+      </PlaceholderPanel>
+    </>
   );
 }

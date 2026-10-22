@@ -1,0 +1,265 @@
+[
+  {
+    "id": "schema.public",
+    "label": "Create schema \"public\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "Create schema \"public\"",
+        "sql": "CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "table.members",
+    "label": "Create table \"members\"",
+    "summary": "Creates table \"members\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "members"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"members\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"members\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"members\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"members\"",
+        "sql": "CREATE TABLE \"public\".\"members\" (\n  \"created_at\" timestamptz NOT NULL,\n  \"id\" uuid NOT NULL,\n  \"role\" text NOT NULL,\n  \"user_id\" uuid NOT NULL,\n  \"workspace_id\" uuid NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"members_role_check_389fa750\" CHECK (\"role\" IN ('owner'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"members\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"members\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"members\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.workspaces",
+    "label": "Create table \"workspaces\"",
+    "summary": "Creates table \"workspaces\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "workspaces"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"workspaces\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"workspaces\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"workspaces\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"workspaces\"",
+        "sql": "CREATE TABLE \"public\".\"workspaces\" (\n  \"created_at\" timestamptz NOT NULL,\n  \"id\" uuid NOT NULL,\n  \"name\" text NOT NULL,\n  \"updated_at\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"workspaces\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"workspaces\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"workspaces\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "unique.members.members_user_id_key",
+    "label": "Add unique constraint on \"members\" (user_id)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "members_user_id_key",
+        "table": "members"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"members_user_id_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "members_user_id_key",
+          "public",
+          "\"public\".\"members\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"members_user_id_key\" on \"members\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"members_user_id_key\"",
+        "sql": "ALTER TABLE \"public\".\"members\" ADD CONSTRAINT \"members_user_id_key\" UNIQUE (\"user_id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"members_user_id_key\" exists on (user_id)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "members_user_id_key",
+          "public",
+          "\"public\".\"members\"",
+          "u",
+          "[\"user_id\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.members.members_workspace_id_idx_90a9f461",
+    "label": "Create index \"members_workspace_id_idx_90a9f461\" on \"members\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "members_workspace_id_idx_90a9f461",
+        "table": "members"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"members_workspace_id_idx_90a9f461\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"members_workspace_id_idx_90a9f461\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"members_workspace_id_idx_90a9f461\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"members_workspace_id_idx_90a9f461\"",
+        "sql": "CREATE INDEX \"members_workspace_id_idx_90a9f461\" ON \"public\".\"members\" (\"workspace_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"members_workspace_id_idx_90a9f461\" exists on \"members\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"members_workspace_id_idx_90a9f461\"",
+          "i",
+          "I",
+          "\"public\".\"members\"",
+          "btree",
+          "[\"workspace_id\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.members.members_workspace_id_fkey",
+    "label": "Add foreign key \"members_workspace_id_fkey\" on \"members\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "members_workspace_id_fkey",
+        "table": "members"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"members_workspace_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "members_workspace_id_fkey",
+          "public",
+          "\"public\".\"members\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"members_workspace_id_fkey\" on \"members\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"members_workspace_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"members\"\nADD CONSTRAINT \"members_workspace_id_fkey\"\nFOREIGN KEY (\"workspace_id\")\nREFERENCES \"public\".\"workspaces\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"members_workspace_id_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "members_workspace_id_fkey",
+          "public",
+          "\"public\".\"members\"",
+          "f",
+          "[\"workspace_id\"]",
+          "\"public\".\"workspaces\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  }
+]

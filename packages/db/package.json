@@ -7,9 +7,19 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "contract:emit": "prisma contract emit",
+    "migration:plan": "prisma migration plan",
+    "migrate:dev": "prisma db migrate --advance-ref db"
+  },
+  "dependencies": {
+    "@prisma/orm-postgres": "8.0.0-rc.20"
   },
   "devDependencies": {
+    "@prisma/cli-engine": "0.9.0",
+    "@types/node": "^24",
+    "dotenv": "^18.0.9",
+    "prisma": "8.0.0-rc.26",
     "typescript": "^5"
   }
 }

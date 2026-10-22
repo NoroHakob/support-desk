@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Geist_Pixel } from "next/font/google";
+import { Providers } from "@/components/providers";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SupportDesk",
+  title: { default: "SupportDesk", template: "%s · SupportDesk" },
   description: "Customer support with an agent that knows its limits.",
 };
 
@@ -27,8 +29,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${geistSans.variable} ${geistPixel.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
