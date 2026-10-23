@@ -1,21 +1,58 @@
-import { PageHeader } from "@/components/dashboard/page-header";
-import { PlaceholderPanel } from "@/components/dashboard/placeholder-panel";
-import { WorkspaceName } from "@/components/dashboard/workspace-name";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function HomePage() {
+import { CodeBlock } from "@/components/dashboard/code-block";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { WorkspaceName } from "@/components/dashboard/workspace-name";
+import { WidgetSettings } from "@/components/widget-settings/widget-settings";
+import { getMockSources } from "@/lib/mock/sources";
+import { getMockWidgetSettings } from "@/lib/mock/widget";
+import { orpc } from "@/lib/orpc";
+import { getQueryClient } from "@/lib/query/server";
+
+async function appOrigin() {
+  const requestHeaders = await headers();
+  const host = requestHeaders.get("host") ?? "localhost:3000";
+  const protocol =
+    requestHeaders.get("x-forwarded-proto") ??
+    (host.startsWith("localhost") ? "http" : "https");
+  return `${protocol}://${host}`;
+}
+
+export default async function HomePage() {
+  const workspace = await getQueryClient().fetchQuery(
+    orpc.workspace.current.queryOptions(),
+  );
+  if (!workspace) {
+    redirect("/auth/welcome");
+  }
+
+  const snippet = [
+    "<script",
+    `  src="${await appOrigin()}/embed.js"`,
+    `  data-workspace="${workspace.id}"`,
+    "  async",
+    "></script>",
+  ].join("\n");
+
   return (
     <>
       <PageHeader
         title="Home"
         description={
           <>
-            Everything for <WorkspaceName /> in one place.
+            Set up the widget for <WorkspaceName /> and see it as visitors do.
           </>
         }
       />
-      <PlaceholderPanel>
-        Your widget settings and setup checklist will live here.
-      </PlaceholderPanel>
+      <WidgetSettings
+        initialSettings={getMockWidgetSettings(workspace.name)}
+        initialSources={getMockSources()}
+        avatarSeed={workspace.id}
+        snippet={
+          <CodeBlock code={snippet} language="html" filename="index.html" />
+        }
+      />
     </>
   );
 }

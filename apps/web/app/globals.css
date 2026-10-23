@@ -2,6 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+@source "../node_modules/streamdown/dist/*.js";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme {
@@ -234,6 +236,35 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* The soft accent glow at the top of dashboard pages. Panels stay neutral. */
+@utility brand-wash {
+  --brand-wash-strength: 14%;
+  background-image: radial-gradient(
+    56rem 18rem at 72% -5rem,
+    color-mix(in oklch, var(--brand) var(--brand-wash-strength), transparent),
+    transparent
+  );
+
+  .dark & {
+    --brand-wash-strength: 20%;
+  }
+}
+
+/* Monochrome syntax colors for the code block, on the ink surface. */
+.code-block {
+  --shiki-foreground: #c8c8c8;
+  --shiki-background: transparent;
+  --shiki-token-keyword: #ffffff;
+  --shiki-token-constant: #ffffff;
+  --shiki-token-function: #ffffff;
+  --shiki-token-parameter: #a3a3a3;
+  --shiki-token-string: #e5e5e5;
+  --shiki-token-string-expression: #e5e5e5;
+  --shiki-token-comment: #737373;
+  --shiki-token-punctuation: #8a8a8a;
+  --shiki-token-link: #e5e5e5;
 }
 
 @layer base {

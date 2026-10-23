@@ -4,3 +4,5 @@ pnpm-lock.yaml
 packages/db/src/prisma/contract.d.ts
 packages/db/src/prisma/contract.json
 packages/db/migrations
+.claude/
+.mcp.json

@@ -27,6 +27,7 @@ export function NavMain() {
                   tooltip={item.title}
                   isActive={active}
                   aria-current={active ? "page" : undefined}
+                  className="data-active:[&>svg]:text-primary"
                   render={<Link href={item.href} />}
                 >
                   <item.icon />

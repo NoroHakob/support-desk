@@ -2,6 +2,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { DashboardAccentProvider } from "@/components/dashboard/accent-provider";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { SiteHeader } from "@/components/dashboard/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -9,6 +10,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { verifyEmailHref } from "@/lib/auth/routes";
 import { auth } from "@/lib/auth/server";
 import { memberAvatarUri } from "@/lib/avatar";
+import { getMockWidgetSettings } from "@/lib/mock/widget";
 import { orpc } from "@/lib/orpc";
 import { getQueryClient } from "@/lib/query/server";
 import { displayName, initials } from "@/lib/user";
@@ -40,25 +42,29 @@ export default async function DashboardLayout({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <TooltipProvider delay={400}>
-        <SidebarProvider
-          defaultOpen={sidebarOpen}
-          style={{ "--header-height": "3.5rem" } as React.CSSProperties}
-        >
-          <AppSidebar
-            user={{
-              name,
-              email: user.email,
-              avatarUrl: user.image ?? memberAvatarUri(name),
-              initials: initials(name),
-            }}
-          />
-          <SidebarInset>
-            <SiteHeader />
-            <div className="flex flex-1 flex-col">{children}</div>
-          </SidebarInset>
-        </SidebarProvider>
-      </TooltipProvider>
+      <DashboardAccentProvider
+        initialColor={getMockWidgetSettings(workspace.name).color}
+      >
+        <TooltipProvider delay={400}>
+          <SidebarProvider
+            defaultOpen={sidebarOpen}
+            style={{ "--header-height": "3.5rem" } as React.CSSProperties}
+          >
+            <AppSidebar
+              user={{
+                name,
+                email: user.email,
+                avatarUrl: user.image ?? memberAvatarUri(name),
+                initials: initials(name),
+              }}
+            />
+            <SidebarInset className="min-w-0 brand-wash">
+              <SiteHeader />
+              <div className="flex flex-1 flex-col">{children}</div>
+            </SidebarInset>
+          </SidebarProvider>
+        </TooltipProvider>
+      </DashboardAccentProvider>
     </HydrationBoundary>
   );
 }
