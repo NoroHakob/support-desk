@@ -21,6 +21,7 @@ export function Dropzone({
   maxBytes,
   multiple = false,
   compact = false,
+  disabled = false,
   title,
   description,
   onFiles,
@@ -31,6 +32,7 @@ export function Dropzone({
   maxBytes: number;
   multiple?: boolean;
   compact?: boolean;
+  disabled?: boolean;
   title: string;
   description: string;
   onFiles: (files: File[]) => void;
@@ -41,6 +43,7 @@ export function Dropzone({
   const [rejections, setRejections] = useState<string[]>([]);
 
   function handleFiles(list: FileList | null) {
+    if (disabled) return;
     const files = Array.from(list ?? []).slice(0, multiple ? undefined : 1);
     const accepted: File[] = [];
     const rejected: string[] = [];
@@ -63,15 +66,18 @@ export function Dropzone({
     <div className={cn("flex flex-col gap-2", className)}>
       <button
         type="button"
+        aria-disabled={disabled}
         data-dragging={dragging}
-        onClick={() => inputRef.current?.click()}
+        onClick={() => {
+          if (!disabled) inputRef.current?.click();
+        }}
         onDragEnter={(event) => {
           event.preventDefault();
-          setDragging(true);
+          if (!disabled) setDragging(true);
         }}
         onDragOver={(event) => {
           event.preventDefault();
-          event.dataTransfer.dropEffect = "copy";
+          event.dataTransfer.dropEffect = disabled ? "none" : "copy";
         }}
         onDragLeave={(event) => {
           const next = event.relatedTarget;
@@ -85,7 +91,7 @@ export function Dropzone({
           handleFiles(event.dataTransfer.files);
         }}
         className={cn(
-          "group/dropzone flex w-full items-center rounded-xl border border-dashed border-foreground/15 bg-muted/30 text-left transition-colors duration-150 outline-none hover:bg-muted/60 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 data-[dragging=true]:border-primary data-[dragging=true]:bg-primary/5",
+          "group/dropzone flex w-full items-center rounded-xl border border-dashed border-foreground/15 bg-muted/30 text-left transition-colors duration-150 outline-none hover:bg-muted/60 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-muted/30 data-[dragging=true]:border-primary data-[dragging=true]:bg-primary/5",
           compact ? "gap-3 p-3" : "flex-col justify-center gap-3 px-6 py-8",
         )}
       >

@@ -10,7 +10,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { verifyEmailHref } from "@/lib/auth/routes";
 import { auth } from "@/lib/auth/server";
 import { memberAvatarUri } from "@/lib/avatar";
-import { getMockWidgetSettings } from "@/lib/mock/widget";
 import { orpc } from "@/lib/orpc";
 import { getQueryClient } from "@/lib/query/server";
 import { displayName, initials } from "@/lib/user";
@@ -36,15 +35,16 @@ export default async function DashboardLayout({
   if (!workspace) {
     redirect("/auth/welcome");
   }
+  const widgetSettings = await queryClient.fetchQuery(
+    orpc.widgetSettings.get.queryOptions(),
+  );
 
   const name = displayName(user);
   const sidebarOpen = (await cookies()).get("sidebar_state")?.value !== "false";
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <DashboardAccentProvider
-        initialColor={getMockWidgetSettings(workspace.name).color}
-      >
+      <DashboardAccentProvider initialColor={widgetSettings.color}>
         <TooltipProvider delay={400}>
           <SidebarProvider
             defaultOpen={sidebarOpen}

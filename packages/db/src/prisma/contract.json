@@ -8,6 +8,10 @@
       "model": "Member",
       "namespace": "public"
     },
+    "sources": {
+      "model": "Source",
+      "namespace": "public"
+    },
     "workspaces": {
       "model": "Workspace",
       "namespace": "public"
@@ -23,6 +27,86 @@
               {
                 "name": "owner",
                 "value": "owner"
+              }
+            ]
+          },
+          "SourceKind": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "file",
+                "value": "file"
+              },
+              {
+                "name": "text",
+                "value": "text"
+              }
+            ]
+          },
+          "SourceStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "uploaded",
+                "value": "uploaded"
+              },
+              {
+                "name": "processing",
+                "value": "processing"
+              },
+              {
+                "name": "ready",
+                "value": "ready"
+              },
+              {
+                "name": "failed",
+                "value": "failed"
+              }
+            ]
+          },
+          "WidgetColor": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "blue",
+                "value": "blue"
+              },
+              {
+                "name": "indigo",
+                "value": "indigo"
+              },
+              {
+                "name": "violet",
+                "value": "violet"
+              },
+              {
+                "name": "pink",
+                "value": "pink"
+              },
+              {
+                "name": "red",
+                "value": "red"
+              },
+              {
+                "name": "orange",
+                "value": "orange"
+              },
+              {
+                "name": "green",
+                "value": "green"
+              }
+            ]
+          },
+          "WidgetPosition": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "bottomLeft",
+                "value": "bottom-left"
+              },
+              {
+                "name": "bottomRight",
+                "value": "bottom-right"
               }
             ]
           }
@@ -112,12 +196,213 @@
               "table": "members"
             }
           },
-          "Workspace": {
+          "Source": {
             "fields": {
               "createdAt": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar"
+                }
+              },
+              "error": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "kind": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SourceKind",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "mime": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "revision": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "size": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SourceStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "storageKey": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "text": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar"
+                }
+              },
+              "workspaceId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "workspace": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "workspaceId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Workspace",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "error": {
+                  "column": "error"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "kind": {
+                  "column": "kind"
+                },
+                "mime": {
+                  "column": "mime"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "revision": {
+                  "column": "revision"
+                },
+                "size": {
+                  "column": "size"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "storageKey": {
+                  "column": "storage_key"
+                },
+                "text": {
+                  "column": "text"
+                },
+                "updatedAt": {
+                  "column": "updated_at"
+                },
+                "workspaceId": {
+                  "column": "workspace_id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "sources"
+            }
+          },
+          "Workspace": {
+            "fields": {
+              "agentAvatarKey": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "agentName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "allowedDomains": {
+                "many": {
+                  "elementNullable": false
+                },
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar"
+                }
+              },
+              "greeting": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
@@ -135,19 +420,74 @@
                   "kind": "scalar"
                 }
               },
+              "snippetInstalledAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar"
+                }
+              },
+              "suggestedQuestions": {
+                "many": {
+                  "elementNullable": false
+                },
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "updatedAt": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/timestamptz-date@1",
                   "kind": "scalar"
                 }
+              },
+              "widgetColor": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "WidgetColor",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "widgetPosition": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "WidgetPosition",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
               }
             },
             "relations": {},
             "storage": {
               "fields": {
+                "agentAvatarKey": {
+                  "column": "agent_avatar_key"
+                },
+                "agentName": {
+                  "column": "agent_name"
+                },
+                "allowedDomains": {
+                  "column": "allowed_domains"
+                },
                 "createdAt": {
                   "column": "created_at"
+                },
+                "greeting": {
+                  "column": "greeting"
                 },
                 "id": {
                   "column": "id"
@@ -155,8 +495,20 @@
                 "name": {
                   "column": "name"
                 },
+                "snippetInstalledAt": {
+                  "column": "snippet_installed_at"
+                },
+                "suggestedQuestions": {
+                  "column": "suggested_questions"
+                },
                 "updatedAt": {
                   "column": "updated_at"
+                },
+                "widgetColor": {
+                  "column": "widget_color"
+                },
+                "widgetPosition": {
+                  "column": "widget_position"
                 }
               },
               "namespaceId": "public",
@@ -258,11 +610,222 @@
                 }
               ]
             },
-            "workspaces": {
+            "sources": {
+              "checks": [
+                {
+                  "expression": "\"kind\" IN ('file', 'text')",
+                  "name": "sources_kind_check_6299d266",
+                  "prefix": "sources_kind_check"
+                },
+                {
+                  "expression": "\"status\" IN ('uploaded', 'processing', 'ready', 'failed')",
+                  "name": "sources_status_check_fde2d523",
+                  "prefix": "sources_status_check"
+                }
+              ],
               "columns": {
                 "created_at": {
                   "codecId": "pg/timestamptz-date@1",
                   "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "error": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "kind": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SourceKind",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "mime": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "revision": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "size": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "uploaded"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SourceStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "storage_key": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "text": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "updated_at": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "workspace_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "sources_workspace_id_idx_90a9f461"
+                  },
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "workspace_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "sources"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "workspaces"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "workspace_id",
+                    "name"
+                  ],
+                  "name": "sources_workspace_file_name_key_53efca60",
+                  "prefix": "sources_workspace_file_name_key",
+                  "unique": true,
+                  "where": "(kind = 'file')"
+                },
+                {
+                  "columns": [
+                    "workspace_id",
+                    "created_at"
+                  ],
+                  "name": "sources_workspace_id_created_at_idx_3f0db799",
+                  "prefix": "sources_workspace_id_created_at_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "workspace_id"
+                  ],
+                  "name": "sources_workspace_id_idx_90a9f461",
+                  "prefix": "sources_workspace_id_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "workspaces": {
+              "checks": [
+                {
+                  "expression": "array_position(\"allowed_domains\", NULL) IS NULL",
+                  "name": "workspaces_allowed_domains_elem_not_null_50f9fffb",
+                  "prefix": "workspaces_allowed_domains_elem_not_null"
+                },
+                {
+                  "expression": "array_position(\"suggested_questions\", NULL) IS NULL",
+                  "name": "workspaces_suggested_questions_elem_not_null_4bc52d93",
+                  "prefix": "workspaces_suggested_questions_elem_not_null"
+                },
+                {
+                  "expression": "\"widget_color\" IN ('blue', 'indigo', 'violet', 'pink', 'red', 'orange', 'green')",
+                  "name": "workspaces_widget_color_check_eb1bcf52",
+                  "prefix": "workspaces_widget_color_check"
+                },
+                {
+                  "expression": "\"widget_position\" IN ('bottom-left', 'bottom-right')",
+                  "name": "workspaces_widget_position_check_58d2c3c7",
+                  "prefix": "workspaces_widget_position_check"
+                }
+              ],
+              "columns": {
+                "agent_avatar_key": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "agent_name": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "allowed_domains": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "expression": "'{}'",
+                    "kind": "function"
+                  },
+                  "many": {
+                    "elementNullable": false
+                  },
+                  "nullable": false
+                },
+                "created_at": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "greeting": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "Hi there! How can we help you today?"
+                  },
                   "nullable": false
                 },
                 "id": {
@@ -275,10 +838,57 @@
                   "dataType": "pg/text",
                   "nullable": false
                 },
+                "snippet_installed_at": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
+                "suggested_questions": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "expression": "'{}'",
+                    "kind": "function"
+                  },
+                  "many": {
+                    "elementNullable": false
+                  },
+                  "nullable": false
+                },
                 "updated_at": {
                   "codecId": "pg/timestamptz-date@1",
                   "dataType": "pg/timestamptz",
                   "nullable": false
+                },
+                "widget_color": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "blue"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "WidgetColor",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "widget_position": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "bottom-right"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "WidgetPosition",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
                 }
               },
               "foreignKeys": [],
@@ -297,6 +907,41 @@
               "values": [
                 "owner"
               ]
+            },
+            "SourceKind": {
+              "kind": "valueSet",
+              "values": [
+                "file",
+                "text"
+              ]
+            },
+            "SourceStatus": {
+              "kind": "valueSet",
+              "values": [
+                "uploaded",
+                "processing",
+                "ready",
+                "failed"
+              ]
+            },
+            "WidgetColor": {
+              "kind": "valueSet",
+              "values": [
+                "blue",
+                "indigo",
+                "violet",
+                "pink",
+                "red",
+                "orange",
+                "green"
+              ]
+            },
+            "WidgetPosition": {
+              "kind": "valueSet",
+              "values": [
+                "bottom-left",
+                "bottom-right"
+              ]
             }
           }
         },
@@ -304,10 +949,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "28cac544cd32f1a6dca349ac76ee890caa2bec74709f21fdfa75729217376956"
+    "storageHash": "43cdbf79f56ff66d043c0a2dfab9dbef3a99e19ea0b98c49a9a2694724ec14e8"
   },
   "execution": {
-    "executionHash": "99ca396e99d117de893cde9d01ffad7158669d6933966a29ea3e3514b30e2408",
+    "executionHash": "c7cef4cae02e9cd07516bf515da0f75d5898dbe7ebd40cdf24da6e371b703490",
     "mutations": {
       "defaults": [
         {
@@ -329,6 +974,43 @@
           "ref": {
             "entry": "members",
             "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "sources",
+            "field": "created_at",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "sources",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "sources",
+            "field": "updated_at",
             "namespace": "public"
           }
         },

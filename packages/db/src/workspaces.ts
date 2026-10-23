@@ -1,3 +1,5 @@
+import { defaultAgentName } from "@marshaldesk/shared";
+
 import { db } from "./prisma/db";
 
 export async function findMembershipByUserId(userId: string) {
@@ -29,7 +31,7 @@ export async function createWorkspaceWithOwner({
       const workspace = await tx.orm.public.Workspace.select(
         "id",
         "name",
-      ).create({ name });
+      ).create({ name, agentName: defaultAgentName(name) });
       await tx.orm.public.Member.create({
         workspaceId: workspace.id,
         userId,

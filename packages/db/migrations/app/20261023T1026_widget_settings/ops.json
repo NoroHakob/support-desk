@@ -1,0 +1,821 @@
+[
+  {
+    "id": "column.public.workspaces.agent_avatar_key",
+    "label": "Add column \"agent_avatar_key\" to \"workspaces\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "agent_avatar_key",
+        "table": "workspaces"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"agent_avatar_key\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "agent_avatar_key"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"agent_avatar_key\" on \"workspaces\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"agent_avatar_key\"",
+        "sql": "ALTER TABLE \"public\".\"workspaces\" ADD COLUMN \"agent_avatar_key\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"agent_avatar_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "agent_avatar_key"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"agent_avatar_key\" on \"workspaces\""
+        }
+      },
+      {
+        "description": "verify column \"agent_avatar_key\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "agent_avatar_key",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.workspaces.allowed_domains",
+    "label": "Add column \"allowed_domains\" to \"workspaces\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "allowed_domains",
+        "table": "workspaces"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"allowed_domains\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "allowed_domains"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"allowed_domains\" on \"workspaces\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"allowed_domains\"",
+        "sql": "ALTER TABLE \"public\".\"workspaces\" ADD COLUMN \"allowed_domains\" text[] DEFAULT ('{}') NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"allowed_domains\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "allowed_domains"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"allowed_domains\" on \"workspaces\""
+        }
+      },
+      {
+        "description": "verify column \"allowed_domains\" has type \"text[]\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "allowed_domains",
+          "text[]"
+        ]
+      },
+      {
+        "description": "verify column \"allowed_domains\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "allowed_domains",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.workspaces.greeting",
+    "label": "Add column \"greeting\" to \"workspaces\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "greeting",
+        "table": "workspaces"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"greeting\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "greeting"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"greeting\" on \"workspaces\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"greeting\"",
+        "sql": "ALTER TABLE \"public\".\"workspaces\" ADD COLUMN \"greeting\" text DEFAULT 'Hi there! How can we help you today?' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"greeting\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "greeting"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"greeting\" on \"workspaces\""
+        }
+      },
+      {
+        "description": "verify column \"greeting\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "greeting",
+          "text"
+        ]
+      },
+      {
+        "description": "verify column \"greeting\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "greeting",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.workspaces.snippet_installed_at",
+    "label": "Add column \"snippet_installed_at\" to \"workspaces\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "snippet_installed_at",
+        "table": "workspaces"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"snippet_installed_at\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "snippet_installed_at"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"snippet_installed_at\" on \"workspaces\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"snippet_installed_at\"",
+        "sql": "ALTER TABLE \"public\".\"workspaces\" ADD COLUMN \"snippet_installed_at\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"snippet_installed_at\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "snippet_installed_at"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"snippet_installed_at\" on \"workspaces\""
+        }
+      },
+      {
+        "description": "verify column \"snippet_installed_at\" has type \"timestamp with time zone\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "snippet_installed_at",
+          "timestamp with time zone"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.workspaces.suggested_questions",
+    "label": "Add column \"suggested_questions\" to \"workspaces\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "suggested_questions",
+        "table": "workspaces"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"suggested_questions\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "suggested_questions"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"suggested_questions\" on \"workspaces\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"suggested_questions\"",
+        "sql": "ALTER TABLE \"public\".\"workspaces\" ADD COLUMN \"suggested_questions\" text[] DEFAULT ('{}') NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"suggested_questions\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "suggested_questions"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"suggested_questions\" on \"workspaces\""
+        }
+      },
+      {
+        "description": "verify column \"suggested_questions\" has type \"text[]\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "suggested_questions",
+          "text[]"
+        ]
+      },
+      {
+        "description": "verify column \"suggested_questions\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "suggested_questions",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.workspaces.widget_color",
+    "label": "Add column \"widget_color\" to \"workspaces\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "widget_color",
+        "table": "workspaces"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"widget_color\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "widget_color"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"widget_color\" on \"workspaces\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"widget_color\"",
+        "sql": "ALTER TABLE \"public\".\"workspaces\" ADD COLUMN \"widget_color\" text DEFAULT 'blue' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"widget_color\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "widget_color"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"widget_color\" on \"workspaces\""
+        }
+      },
+      {
+        "description": "verify column \"widget_color\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "widget_color",
+          "text"
+        ]
+      },
+      {
+        "description": "verify column \"widget_color\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "widget_color",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.workspaces.widget_position",
+    "label": "Add column \"widget_position\" to \"workspaces\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "widget_position",
+        "table": "workspaces"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"widget_position\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "widget_position"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"widget_position\" on \"workspaces\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"widget_position\"",
+        "sql": "ALTER TABLE \"public\".\"workspaces\" ADD COLUMN \"widget_position\" text DEFAULT 'bottom-right' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"widget_position\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "widget_position"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"widget_position\" on \"workspaces\""
+        }
+      },
+      {
+        "description": "verify column \"widget_position\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "widget_position",
+          "text"
+        ]
+      },
+      {
+        "description": "verify column \"widget_position\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "widget_position",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.workspaces.agent_name",
+    "label": "Add column \"agent_name\" to \"workspaces\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "agent_name",
+        "table": "workspaces"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"agent_name\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "agent_name"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"agent_name\" on \"workspaces\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"agent_name\"",
+        "sql": "ALTER TABLE \"public\".\"workspaces\" ADD COLUMN \"agent_name\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"agent_name\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "agent_name"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"agent_name\" on \"workspaces\""
+        }
+      },
+      {
+        "description": "verify column \"agent_name\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "agent_name",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "data_migration.backfill-workspaces-agent_name",
+    "label": "Data transform: backfill-workspaces-agent_name",
+    "operationClass": "data",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "agent_name",
+        "table": "workspaces"
+      }
+    },
+    "precheck": [
+      {
+        "description": "Check backfill-workspaces-agent_name has work to do",
+        "sql": "SELECT EXISTS (SELECT \"id\" AS \"id\" FROM \"public\".\"workspaces\" WHERE \"agent_name\" IS NULL LIMIT 1) AS ok",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "Run backfill-workspaces-agent_name",
+        "sql": "UPDATE \"workspaces\" SET \"agent_name\" = \"name\" || ' Agent' WHERE \"agent_name\" IS NULL",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "Verify backfill-workspaces-agent_name resolved all violations",
+        "sql": "SELECT NOT EXISTS (SELECT \"id\" AS \"id\" FROM \"public\".\"workspaces\" WHERE \"agent_name\" IS NULL LIMIT 1) AS ok",
+        "params": [],
+        "meta": {
+          "requiredColumn": {
+            "table": "workspaces",
+            "column": "agent_name",
+            "reason": "backfillMissedRows"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.setNotNull.workspaces.agent_name",
+    "label": "Set NOT NULL on \"workspaces\".\"agent_name\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "agent_name",
+        "table": "workspaces"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"agent_name\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "agent_name"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"agent_name\" on \"workspaces\""
+        }
+      },
+      {
+        "description": "ensure no NULL values in \"agent_name\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"public\".\"workspaces\" WHERE \"agent_name\" IS NULL) AS \"result\"",
+        "params": [],
+        "meta": {
+          "requiredColumn": {
+            "table": "workspaces",
+            "column": "agent_name",
+            "reason": "nullValues"
+          }
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "set NOT NULL on \"agent_name\"",
+        "sql": "ALTER TABLE \"public\".\"workspaces\" ALTER COLUMN \"agent_name\" SET NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"agent_name\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "workspaces",
+          "agent_name",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.workspaces.workspaces_allowed_domains_elem_not_null_50f9fffb",
+    "label": "Add check constraint \"workspaces_allowed_domains_elem_not_null_50f9fffb\" on \"workspaces\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "workspaces_allowed_domains_elem_not_null_50f9fffb",
+        "table": "workspaces"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"workspaces_allowed_domains_elem_not_null_50f9fffb\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "workspaces_allowed_domains_elem_not_null_50f9fffb",
+          "public",
+          "\"public\".\"workspaces\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"workspaces_allowed_domains_elem_not_null_50f9fffb\" on \"workspaces\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"workspaces_allowed_domains_elem_not_null_50f9fffb\"",
+        "sql": "ALTER TABLE \"public\".\"workspaces\" ADD CONSTRAINT \"workspaces_allowed_domains_elem_not_null_50f9fffb\" CHECK (array_position(\"allowed_domains\", NULL) IS NULL)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"workspaces_allowed_domains_elem_not_null_50f9fffb\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "workspaces_allowed_domains_elem_not_null_50f9fffb",
+          "public",
+          "\"public\".\"workspaces\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.workspaces.workspaces_suggested_questions_elem_not_null_4bc52d93",
+    "label": "Add check constraint \"workspaces_suggested_questions_elem_not_null_4bc52d93\" on \"workspaces\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "workspaces_suggested_questions_elem_not_null_4bc52d93",
+        "table": "workspaces"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"workspaces_suggested_questions_elem_not_null_4bc52d93\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "workspaces_suggested_questions_elem_not_null_4bc52d93",
+          "public",
+          "\"public\".\"workspaces\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"workspaces_suggested_questions_elem_not_null_4bc52d93\" on \"workspaces\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"workspaces_suggested_questions_elem_not_null_4bc52d93\"",
+        "sql": "ALTER TABLE \"public\".\"workspaces\" ADD CONSTRAINT \"workspaces_suggested_questions_elem_not_null_4bc52d93\" CHECK (array_position(\"suggested_questions\", NULL) IS NULL)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"workspaces_suggested_questions_elem_not_null_4bc52d93\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "workspaces_suggested_questions_elem_not_null_4bc52d93",
+          "public",
+          "\"public\".\"workspaces\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.workspaces.workspaces_widget_color_check_eb1bcf52",
+    "label": "Add check constraint \"workspaces_widget_color_check_eb1bcf52\" on \"workspaces\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "workspaces_widget_color_check_eb1bcf52",
+        "table": "workspaces"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"workspaces_widget_color_check_eb1bcf52\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "workspaces_widget_color_check_eb1bcf52",
+          "public",
+          "\"public\".\"workspaces\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"workspaces_widget_color_check_eb1bcf52\" on \"workspaces\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"workspaces_widget_color_check_eb1bcf52\"",
+        "sql": "ALTER TABLE \"public\".\"workspaces\" ADD CONSTRAINT \"workspaces_widget_color_check_eb1bcf52\" CHECK (\"widget_color\" IN ('blue', 'indigo', 'violet', 'pink', 'red', 'orange', 'green'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"workspaces_widget_color_check_eb1bcf52\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "workspaces_widget_color_check_eb1bcf52",
+          "public",
+          "\"public\".\"workspaces\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.workspaces.workspaces_widget_position_check_58d2c3c7",
+    "label": "Add check constraint \"workspaces_widget_position_check_58d2c3c7\" on \"workspaces\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "workspaces_widget_position_check_58d2c3c7",
+        "table": "workspaces"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"workspaces_widget_position_check_58d2c3c7\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "workspaces_widget_position_check_58d2c3c7",
+          "public",
+          "\"public\".\"workspaces\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"workspaces_widget_position_check_58d2c3c7\" on \"workspaces\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"workspaces_widget_position_check_58d2c3c7\"",
+        "sql": "ALTER TABLE \"public\".\"workspaces\" ADD CONSTRAINT \"workspaces_widget_position_check_58d2c3c7\" CHECK (\"widget_position\" IN ('bottom-left', 'bottom-right'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"workspaces_widget_position_check_58d2c3c7\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "workspaces_widget_position_check_58d2c3c7",
+          "public",
+          "\"public\".\"workspaces\"",
+          "c"
+        ]
+      }
+    ]
+  }
+]

@@ -33,7 +33,7 @@ export function SourceRow({
   onDelete,
 }: {
   source: Source;
-  onDelete: () => void;
+  onDelete?: () => void;
 }) {
   const extension = source.kind === "file" ? fileExtension(source.name) : "";
   const meta = [
@@ -70,9 +70,11 @@ export function SourceRow({
         )}
       </span>
       <StatusBadge status={source.status} />
-      <IconButton label={`Delete ${source.name}`} onClick={onDelete}>
-        <Trash2 />
-      </IconButton>
+      {onDelete ? (
+        <IconButton label={`Delete ${source.name}`} onClick={onDelete}>
+          <Trash2 />
+        </IconButton>
+      ) : null}
     </li>
   );
 }

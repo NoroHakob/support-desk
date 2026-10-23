@@ -4,6 +4,8 @@ import {
 } from "@marshaldesk/db";
 
 import { os, sessionProcedure } from "@/server/orpc/base";
+import { knowledge } from "@/server/orpc/knowledge";
+import { widgetSettings } from "@/server/orpc/widget-settings";
 
 export const router = os.router({
   workspace: {
@@ -23,6 +25,8 @@ export const router = os.router({
       },
     ),
   },
+  widgetSettings,
+  knowledge,
 });
 
 export type Router = typeof router;

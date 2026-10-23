@@ -7,16 +7,17 @@ import type {
 } from "@marshaldesk/shared";
 
 import { minutesAgo, mockId } from "@/lib/mock/ids";
-import { mockSourceIds } from "@/lib/mock/sources";
-import { mockGreeting } from "@/lib/mock/widget";
 
 const MODEL = "gemini-3.8-flash";
 
+const mockGreeting =
+  "Hi there! Ask me anything about our products, shipping or your account.";
+
 const sources = {
-  shipping: { id: mockSourceIds.shipping, name: "Shipping and returns.pdf" },
-  pricing: { id: mockSourceIds.pricing, name: "Pricing.md" },
-  account: { id: mockSourceIds.account, name: "Account help.txt" },
-  hours: { id: mockSourceIds.hours, name: "Opening hours" },
+  shipping: { id: mockId(401), name: "Shipping and returns.pdf" },
+  pricing: { id: mockId(402), name: "Pricing.md" },
+  account: { id: mockId(403), name: "Account help.txt" },
+  hours: { id: mockId(404), name: "Opening hours" },
 } as const;
 
 type SourceRef = (typeof sources)[keyof typeof sources];

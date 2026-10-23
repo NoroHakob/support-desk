@@ -1,12 +1,10 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { CodeBlock } from "@/components/dashboard/code-block";
-import { PageHeader } from "@/components/dashboard/page-header";
 import { WorkspaceName } from "@/components/dashboard/workspace-name";
 import { WidgetSettings } from "@/components/widget-settings/widget-settings";
-import { getMockSources } from "@/lib/mock/sources";
-import { getMockWidgetSettings } from "@/lib/mock/widget";
 import { orpc } from "@/lib/orpc";
 import { getQueryClient } from "@/lib/query/server";
 
@@ -20,9 +18,12 @@ async function appOrigin() {
 }
 
 export default async function HomePage() {
-  const workspace = await getQueryClient().fetchQuery(
-    orpc.workspace.current.queryOptions(),
-  );
+  const queryClient = getQueryClient();
+  const [workspace] = await Promise.all([
+    queryClient.fetchQuery(orpc.workspace.current.queryOptions()),
+    queryClient.prefetchQuery(orpc.widgetSettings.get.queryOptions()),
+    queryClient.prefetchQuery(orpc.knowledge.sources.queryOptions()),
+  ]);
   if (!workspace) {
     redirect("/auth/welcome");
   }
@@ -36,23 +37,18 @@ export default async function HomePage() {
   ].join("\n");
 
   return (
-    <>
-      <PageHeader
-        title="Home"
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <WidgetSettings
         description={
           <>
             Set up the widget for <WorkspaceName /> and see it as visitors do.
           </>
         }
-      />
-      <WidgetSettings
-        initialSettings={getMockWidgetSettings(workspace.name)}
-        initialSources={getMockSources()}
         avatarSeed={workspace.id}
         snippet={
           <CodeBlock code={snippet} language="html" filename="index.html" />
         }
       />
-    </>
+    </HydrationBoundary>
   );
 }

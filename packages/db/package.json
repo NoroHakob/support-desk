@@ -13,6 +13,7 @@
     "migrate:dev": "prisma db migrate --advance-ref db"
   },
   "dependencies": {
+    "@marshaldesk/shared": "workspace:*",
     "@prisma/orm-postgres": "8.0.0-rc.20"
   },
   "devDependencies": {

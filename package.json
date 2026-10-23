@@ -11,7 +11,9 @@
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "env:set": "node scripts/env.mjs set",
+    "env:secret": "node scripts/env.mjs secret"
   },
   "devDependencies": {
     "eslint": "^9.39.5",

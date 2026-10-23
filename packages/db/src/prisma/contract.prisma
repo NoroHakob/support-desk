@@ -5,11 +5,50 @@ enum MemberRole {
   owner = "owner"
 }
 
+enum WidgetPosition {
+  @@type("pg/text@1")
+  bottomLeft  = "bottom-left"
+  bottomRight = "bottom-right"
+}
+
+enum WidgetColor {
+  @@type("pg/text@1")
+  blue   = "blue"
+  indigo = "indigo"
+  violet = "violet"
+  pink   = "pink"
+  red    = "red"
+  orange = "orange"
+  green  = "green"
+}
+
+enum SourceKind {
+  @@type("pg/text@1")
+  file = "file"
+  text = "text"
+}
+
+enum SourceStatus {
+  @@type("pg/text@1")
+  uploaded   = "uploaded"
+  processing = "processing"
+  ready      = "ready"
+  failed     = "failed"
+}
+
 model Workspace {
-  id        Uuid                     @id @onCreate(uuid())
-  name      String
-  createdAt temporal.CreatedAtJsDate @map("created_at")
-  updatedAt temporal.UpdatedAtJsDate @map("updated_at")
+  id                 Uuid                     @id @onCreate(uuid())
+  name               String
+  widgetPosition     WidgetPosition           @default(bottomRight) @map("widget_position")
+  widgetColor        WidgetColor              @default(blue) @map("widget_color")
+  agentName          String                   @map("agent_name")
+  agentAvatarKey     String?                  @map("agent_avatar_key")
+  greeting           String                   @default("Hi there! How can we help you today?")
+  allowedDomains     String[]                 @default(sql`'{}'`) @map("allowed_domains")
+  suggestedQuestions String[]                 @default(sql`'{}'`) @map("suggested_questions")
+  snippetInstalledAt TimestamptzJsDate?       @map("snippet_installed_at")
+  createdAt          temporal.CreatedAtJsDate @map("created_at")
+  updatedAt          temporal.UpdatedAtJsDate @map("updated_at")
 
   @@map("workspaces")
 }
@@ -24,4 +63,26 @@ model Member {
 
   @@index([workspaceId])
   @@map("members")
+}
+
+model Source {
+  id          Uuid                     @id @onCreate(uuid())
+  workspaceId Uuid                     @map("workspace_id")
+  workspace   Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  kind        SourceKind
+  name        String
+  storageKey  String?                  @map("storage_key")
+  text        String?
+  mime        String?
+  size        Int?
+  status      SourceStatus             @default(uploaded)
+  error       String?
+  // Claimed by each ingest run, so only the latest run may swap the chunks.
+  revision    Int                      @default(0)
+  createdAt   temporal.CreatedAtJsDate @map("created_at")
+  updatedAt   temporal.UpdatedAtJsDate @map("updated_at")
+
+  @@index([workspaceId, createdAt])
+  @@index([workspaceId, name], unique: true, where: sql`(kind = 'file')`, name: "sources_workspace_file_name_key")
+  @@map("sources")
 }
