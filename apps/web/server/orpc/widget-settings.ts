@@ -25,11 +25,11 @@ const AVATAR_UPLOAD_EXPIRES_IN_SECONDS = 2 * 60;
 const AVATAR_CACHE_CONTROL = "public, max-age=31536000, immutable";
 const AVATAR_FILE_PATTERN = /^[0-9a-f-]{36}\.(png|jpg|gif|webp)$/;
 
-type WidgetSettingsRow = NonNullable<
+export type WidgetSettingsRow = NonNullable<
   Awaited<ReturnType<typeof findWidgetSettings>>
 >;
 
-function toWidgetSettings(row: WidgetSettingsRow): WidgetSettings {
+export function toWidgetSettings(row: WidgetSettingsRow): WidgetSettings {
   return {
     position: row.widgetPosition,
     color: row.widgetColor,

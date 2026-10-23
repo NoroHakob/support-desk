@@ -1,9 +1,11 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import type { Metadata } from "next";
+import * as z from "zod";
 
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Inbox } from "@/components/inbox/inbox";
-import { visitorAvatarUri } from "@/lib/avatar";
-import { getMockConversations } from "@/lib/mock/conversations";
+import { orpc } from "@/lib/orpc";
+import { getQueryClient } from "@/lib/query/server";
 import { firstParam } from "@/lib/search-params";
 
 export const metadata: Metadata = { title: "Inbox" };
@@ -11,13 +13,16 @@ export const metadata: Metadata = { title: "Inbox" };
 export default async function InboxPage({
   searchParams,
 }: PageProps<"/dashboard/inbox">) {
-  const conversations = getMockConversations();
-  const avatars = Object.fromEntries(
-    conversations.map(({ visitor }) => [
-      visitor.id,
-      visitorAvatarUri(visitor.id),
-    ]),
-  );
+  const queryClient = getQueryClient();
+  const openId = z.uuid().safeParse(firstParam((await searchParams).c));
+  await Promise.all([
+    queryClient.prefetchQuery(orpc.inbox.list.queryOptions()),
+    openId.success
+      ? queryClient.prefetchQuery(
+          orpc.inbox.conversation.queryOptions({ input: { id: openId.data } }),
+        )
+      : null,
+  ]);
 
   return (
     <div className="flex h-[calc(100svh-var(--header-height))] flex-col md:h-[calc(100svh-var(--header-height)-1rem)]">
@@ -26,11 +31,9 @@ export default async function InboxPage({
         description="Conversations with your visitors. Waiting ones need you."
       />
       <div className="flex min-h-0 min-w-0 flex-1 px-4 pb-4 lg:px-6 lg:pb-6">
-        <Inbox
-          initialConversations={conversations}
-          initialOpenId={firstParam((await searchParams).c) ?? null}
-          avatars={avatars}
-        />
+        <HydrationBoundary state={dehydrate(queryClient)}>
+          <Inbox />
+        </HydrationBoundary>
       </div>
     </div>
   );

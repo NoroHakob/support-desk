@@ -1,6 +1,6 @@
 import {
   assertNever,
-  type Conversation,
+  type ConversationSummary,
   type VisitorDetails,
 } from "@marshaldesk/shared";
 
@@ -19,10 +19,8 @@ function plainText(markdown: string) {
     .trim();
 }
 
-export function lastMessagePreview(conversation: Conversation) {
-  const message = conversation.messages.findLast(
-    (item) => item.author !== "system",
-  );
+export function lastMessagePreview(conversation: ConversationSummary) {
+  const message = conversation.lastMessage;
   if (!message) return "";
   switch (message.author) {
     case "visitor":

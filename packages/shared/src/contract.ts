@@ -2,6 +2,11 @@ import { oc } from "@orpc/contract";
 import { openapi } from "@orpc/openapi";
 import * as z from "zod";
 
+import {
+  conversationSchema,
+  conversationSummarySchema,
+  replyInputSchema,
+} from "./conversation";
 import { sourceSchema } from "./source";
 import {
   avatarUploadSchema,
@@ -10,7 +15,24 @@ import {
   widgetSettingsInputSchema,
   widgetSettingsSchema,
 } from "./widget";
+import {
+  visitorMessageInputSchema,
+  widgetConfigInputSchema,
+  widgetConfigSchema,
+  widgetConversationSchema,
+  widgetStartInputSchema,
+  widgetStartSchema,
+} from "./widget-chat";
 import { createWorkspaceInputSchema, workspaceSchema } from "./workspace";
+
+const conversationIdInputSchema = z.object({ id: z.uuid() });
+
+const conversationErrors = {
+  NOT_FOUND: { message: "We couldn't find that conversation." },
+  CONFLICT: {
+    message: "This conversation changed in the meantime. Refresh to see it.",
+  },
+} as const;
 
 export const contract = {
   workspace: {
@@ -108,6 +130,155 @@ export const contract = {
         }),
       )
       .output(z.array(sourceSchema)),
+  },
+  // Called from the widget and the embed script on customers' websites.
+  widget: {
+    config: oc
+      .meta(
+        openapi({
+          method: "GET",
+          path: "/widget/{workspaceId}/config",
+          summary: "Get the widget's public settings for an allowed domain",
+          tags: ["Widget"],
+        }),
+      )
+      .errors({
+        NOT_FOUND: { message: "This widget doesn't exist." },
+        FORBIDDEN: { message: "The widget isn't allowed on this domain." },
+      })
+      .input(widgetConfigInputSchema)
+      .output(widgetConfigSchema),
+    start: oc
+      .meta(
+        openapi({
+          method: "POST",
+          path: "/widget/{workspaceId}/start",
+          summary: "Start or resume a visitor session and get a visitor token",
+          tags: ["Widget"],
+        }),
+      )
+      .errors({
+        NOT_FOUND: { message: "This widget doesn't exist." },
+        FORBIDDEN: { message: "The widget isn't allowed on this domain." },
+      })
+      .input(widgetStartInputSchema)
+      .output(widgetStartSchema),
+    conversations: oc
+      .meta(
+        openapi({
+          method: "GET",
+          path: "/widget/conversations",
+          summary: "List the visitor's recent conversations, oldest first",
+          tags: ["Widget"],
+        }),
+      )
+      .output(z.array(widgetConversationSchema)),
+    sendMessage: oc
+      .meta(
+        openapi({
+          method: "POST",
+          path: "/widget/messages",
+          summary: "Send a visitor message, starting a conversation if needed",
+          tags: ["Widget"],
+        }),
+      )
+      .input(visitorMessageInputSchema)
+      .output(widgetConversationSchema),
+    requestHuman: oc
+      .meta(
+        openapi({
+          method: "POST",
+          path: "/widget/request-human",
+          summary: "Ask for a person in the visitor's open conversation",
+          tags: ["Widget"],
+        }),
+      )
+      .errors(conversationErrors)
+      .output(widgetConversationSchema),
+  },
+  inbox: {
+    list: oc
+      .meta(
+        openapi({
+          method: "GET",
+          path: "/inbox/conversations",
+          summary: "List the workspace's conversations, newest first",
+          tags: ["Inbox"],
+        }),
+      )
+      .output(z.array(conversationSummarySchema)),
+    conversation: oc
+      .meta(
+        openapi({
+          method: "GET",
+          path: "/inbox/conversations/{id}",
+          summary: "Get a conversation with its full history",
+          tags: ["Inbox"],
+        }),
+      )
+      .errors({ NOT_FOUND: conversationErrors.NOT_FOUND })
+      .input(conversationIdInputSchema)
+      .output(conversationSchema),
+    reply: oc
+      .meta(
+        openapi({
+          method: "POST",
+          path: "/inbox/conversations/{id}/reply",
+          summary: "Reply to a conversation, taking it over if needed",
+          tags: ["Inbox"],
+        }),
+      )
+      .errors(conversationErrors)
+      .input(conversationIdInputSchema.extend(replyInputSchema.shape))
+      .output(conversationSchema),
+    takeOver: oc
+      .meta(
+        openapi({
+          method: "POST",
+          path: "/inbox/conversations/{id}/take-over",
+          summary: "Take a conversation over from the agent",
+          tags: ["Inbox"],
+        }),
+      )
+      .errors(conversationErrors)
+      .input(conversationIdInputSchema)
+      .output(conversationSchema),
+    handBack: oc
+      .meta(
+        openapi({
+          method: "POST",
+          path: "/inbox/conversations/{id}/hand-back",
+          summary: "Hand a conversation back to the agent",
+          tags: ["Inbox"],
+        }),
+      )
+      .errors(conversationErrors)
+      .input(conversationIdInputSchema)
+      .output(conversationSchema),
+    close: oc
+      .meta(
+        openapi({
+          method: "POST",
+          path: "/inbox/conversations/{id}/close",
+          summary: "Close a conversation",
+          tags: ["Inbox"],
+        }),
+      )
+      .errors(conversationErrors)
+      .input(conversationIdInputSchema)
+      .output(conversationSchema),
+    markRead: oc
+      .meta(
+        openapi({
+          method: "POST",
+          path: "/inbox/conversations/{id}/read",
+          summary: "Mark a conversation as read",
+          tags: ["Inbox"],
+        }),
+      )
+      .errors({ NOT_FOUND: conversationErrors.NOT_FOUND })
+      .input(conversationIdInputSchema)
+      .output(z.void()),
   },
 };
 

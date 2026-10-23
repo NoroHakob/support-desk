@@ -1,9 +1,8 @@
 "use client";
 
-import type { Conversation } from "@marshaldesk/shared";
 import { MessagesSquare, UserRound } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   ConversationList,
@@ -27,6 +26,7 @@ import {
 } from "@/components/ui/resizable";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useElementWidth } from "@/hooks/use-element-width";
+import { visitorAvatarUri } from "@/lib/avatar";
 
 // Below this width the three panels can't keep their minimum sizes
 // (260 + 340 + 220 px plus the gaps), so the details move into a sheet.
@@ -37,7 +37,7 @@ function parseFilter(value: string | null): InboxFilter {
 }
 
 // Filter and selection live in the URL. Updating it through the History API
-// keeps the page from re-rendering on the server, so local mock state survives.
+// keeps the page from re-rendering on the server; the queries do the loading.
 function setParams(change: Record<string, string | null>, push: boolean) {
   const params = new URLSearchParams(window.location.search);
   for (const [key, value] of Object.entries(change)) {
@@ -58,23 +58,27 @@ function Card({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function Inbox({
-  initialConversations,
-  initialOpenId,
-  avatars,
-}: {
-  initialConversations: Conversation[];
-  initialOpenId: string | null;
-  avatars: Record<string, string>;
-}) {
+export function Inbox() {
   const searchParams = useSearchParams();
   const filter = parseFilter(searchParams.get("state"));
   const openId = searchParams.get("c");
-  const { conversations, ...actions } = useInbox(
-    initialConversations,
-    initialOpenId,
+  const { conversations, open, openLoading, actions, markRead, busy, error } =
+    useInbox(openId);
+  const avatars = useMemo(
+    () =>
+      Object.fromEntries(
+        [
+          ...conversations.map(({ visitor }) => visitor),
+          ...(open ? [open.visitor] : []),
+        ].map((visitor) => [visitor.id, visitorAvatarUri(visitor.id)]),
+      ),
+    [conversations, open],
   );
-  const open = conversations.find((conversation) => conversation.id === openId);
+
+  const openUnreadId = open?.unread ? open.id : null;
+  useEffect(() => {
+    if (openUnreadId) markRead(openUnreadId);
+  }, [openUnreadId, markRead]);
   const [containerRef, width] = useElementWidth<HTMLDivElement>();
   const showDetailsPanel = width === null || width >= DETAILS_PANEL_MIN_WIDTH;
   const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
@@ -96,15 +100,12 @@ export function Inbox({
             <ConversationList
               conversations={conversations}
               filter={filter}
-              selectedId={open?.id ?? null}
+              selectedId={openId}
               avatars={avatars}
               onFilterChange={(next) =>
                 setParams({ state: next === "all" ? null : next }, false)
               }
-              onSelect={(id) => {
-                actions.markRead(id);
-                setParams({ c: id }, true);
-              }}
+              onSelect={(id) => setParams({ c: id }, true)}
             />
           </Card>
         </ResizablePanel>
@@ -116,11 +117,13 @@ export function Inbox({
                 conversation={open}
                 avatarUrl={avatars[open.visitor.id]}
                 actions={actions}
+                busy={busy}
+                error={error}
                 onOpenDetails={
                   showDetailsPanel ? undefined : () => setDetailsSheetOpen(true)
                 }
               />
-            ) : (
+            ) : openLoading ? null : (
               <Empty className="flex-1">
                 <EmptyHeader>
                   <EmptyMedia variant="icon">

@@ -123,6 +123,12 @@ export const conversationSchema = z.object({
   messages: z.array(messageSchema),
 });
 
+// An inbox row: the conversation without its history, plus the newest
+// message for the preview.
+export const conversationSummarySchema = conversationSchema
+  .omit({ messages: true })
+  .extend({ lastMessage: messageSchema.nullable() });
+
 export const replyInputSchema = z.object({
   body: z
     .string()
@@ -143,4 +149,5 @@ export type Message = z.infer<typeof messageSchema>;
 export type VisitorDetails = z.infer<typeof visitorDetailsSchema>;
 export type Visitor = z.infer<typeof visitorSchema>;
 export type Conversation = z.infer<typeof conversationSchema>;
+export type ConversationSummary = z.infer<typeof conversationSummarySchema>;
 export type ReplyInput = z.infer<typeof replyInputSchema>;

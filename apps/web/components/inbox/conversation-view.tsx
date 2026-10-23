@@ -6,7 +6,7 @@ import {
   replyInputSchema,
   type Conversation,
 } from "@marshaldesk/shared";
-import { Bot, CircleCheck, Hand, PanelRight } from "lucide-react";
+import { Bot, CircleX, Hand, PanelRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { IconButton } from "@/components/dashboard/icon-button";
@@ -31,11 +31,15 @@ export function ConversationView({
   conversation,
   avatarUrl,
   actions,
+  busy,
+  error,
   onOpenDetails,
 }: {
   conversation: Conversation;
   avatarUrl: string | undefined;
   actions: InboxActions;
+  busy: boolean;
+  error: string | null;
   onOpenDetails?: () => void;
 }) {
   const endRef = useRef<HTMLDivElement>(null);
@@ -46,7 +50,7 @@ export function ConversationView({
   }, [conversation.id, messageCount]);
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="@container/conversation flex h-full flex-col">
       <header className="flex min-h-16 items-center gap-3 border-b px-4 py-3">
         <VisitorAvatar src={avatarUrl} className="size-9" />
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -63,13 +67,22 @@ export function ConversationView({
             {headerLine(conversation)}
           </p>
         </div>
-        <HeaderActions conversation={conversation} actions={actions} />
+        <HeaderActions
+          conversation={conversation}
+          actions={actions}
+          busy={busy}
+        />
         {onOpenDetails ? (
           <IconButton label="Visitor details" onClick={onOpenDetails}>
             <PanelRight />
           </IconButton>
         ) : null}
       </header>
+      {error ? (
+        <p role="alert" className="border-b px-4 py-2 text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
 
       <ScrollArea className="min-h-0 flex-1">
         <div className="flex flex-col gap-4 px-4 py-5">
@@ -87,6 +100,7 @@ export function ConversationView({
       <Composer
         key={conversation.id}
         conversation={conversation}
+        busy={busy}
         onSend={(body) => actions.reply(conversation.id, body)}
       />
     </div>
@@ -115,17 +129,28 @@ function headerLine(conversation: Conversation) {
 function HeaderActions({
   conversation,
   actions,
+  busy,
 }: {
   conversation: Conversation;
   actions: InboxActions;
+  busy: boolean;
 }) {
+  const close = () => actions.close(conversation.id);
+  // Labelled while the panel has room; icon-only with a tooltip when narrow.
   const closeButton = (
-    <IconButton
-      label="Close conversation"
-      onClick={() => actions.close(conversation.id)}
-    >
-      <CircleCheck />
-    </IconButton>
+    <>
+      <span className="hidden @min-[34rem]/conversation:contents">
+        <Button variant="outline" disabled={busy} onClick={close}>
+          <CircleX />
+          Close
+        </Button>
+      </span>
+      <span className="contents @min-[34rem]/conversation:hidden">
+        <IconButton label="Close conversation" disabled={busy} onClick={close}>
+          <CircleX />
+        </IconButton>
+      </span>
+    </>
   );
 
   switch (conversation.state) {
@@ -134,6 +159,7 @@ function HeaderActions({
         <div className="flex shrink-0 items-center gap-1.5">
           <Button
             variant="outline"
+            disabled={busy}
             onClick={() => actions.takeOver(conversation.id)}
           >
             <Hand />
@@ -145,7 +171,10 @@ function HeaderActions({
     case "waiting":
       return (
         <div className="flex shrink-0 items-center gap-1.5">
-          <Button onClick={() => actions.takeOver(conversation.id)}>
+          <Button
+            disabled={busy}
+            onClick={() => actions.takeOver(conversation.id)}
+          >
             <Hand />
             Take over
           </Button>
@@ -157,6 +186,7 @@ function HeaderActions({
         <div className="flex shrink-0 items-center gap-1.5">
           <Button
             variant="outline"
+            disabled={busy}
             onClick={() => actions.handBack(conversation.id)}
           >
             <Bot />
@@ -188,10 +218,12 @@ function composerPlaceholder(conversation: Conversation) {
 
 function Composer({
   conversation,
+  busy,
   onSend,
 }: {
   conversation: Conversation;
-  onSend: (body: string) => void;
+  busy: boolean;
+  onSend: (body: string) => Promise<unknown>;
 }) {
   const [draft, setDraft] = useState("");
   const valid = replyInputSchema.safeParse({ body: draft }).success;
@@ -207,9 +239,12 @@ function Composer({
 
   function send() {
     const result = replyInputSchema.safeParse({ body: draft });
-    if (!result.success) return;
-    onSend(result.data.body);
-    setDraft("");
+    if (!result.success || busy) return;
+    // The draft stays if sending fails, so nothing typed is lost.
+    onSend(result.data.body).then(
+      () => setDraft(""),
+      () => undefined,
+    );
   }
 
   return (
@@ -246,7 +281,7 @@ function Composer({
             type="submit"
             size="sm"
             variant="default"
-            disabled={!valid}
+            disabled={!valid || busy}
             className="ml-auto"
           >
             Send

@@ -4,7 +4,9 @@ import {
 } from "@marshaldesk/db";
 
 import { os, sessionProcedure } from "@/server/orpc/base";
+import { inbox } from "@/server/orpc/inbox";
 import { knowledge } from "@/server/orpc/knowledge";
+import { widget } from "@/server/orpc/widget";
 import { widgetSettings } from "@/server/orpc/widget-settings";
 
 export const router = os.router({
@@ -27,6 +29,8 @@ export const router = os.router({
   },
   widgetSettings,
   knowledge,
+  widget,
+  inbox,
 });
 
 export type Router = typeof router;

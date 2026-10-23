@@ -55,3 +55,11 @@ export async function setAgentAvatarKey(
     return settings ? { settings, previousKey: current.agentAvatarKey } : null;
   });
 }
+
+/** Records the first widget session on a real allowed domain (PRD D-10). */
+export async function markSnippetInstalled(workspaceId: string, now: Date) {
+  await db.orm.public.Workspace.where({ id: workspaceId })
+    .where((workspace) => workspace.snippetInstalledAt.isNull())
+    .select("id")
+    .update({ snippetInstalledAt: now });
+}

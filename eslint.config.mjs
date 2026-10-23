@@ -20,5 +20,6 @@ export default defineConfig([
     "packages/db/src/prisma/contract.d.ts",
     "packages/db/src/prisma/contract.json",
     "packages/db/migrations/**",
+    "apps/web/public/embed.js",
   ]),
 ]);

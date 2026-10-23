@@ -1,11 +1,27 @@
 import { defaultAgentName } from "@marshaldesk/shared";
 
+import { isUniqueViolation } from "./errors";
 import { db } from "./prisma/db";
 
 export async function findMembershipByUserId(userId: string) {
-  return db.orm.public.Member.select("id", "workspaceId", "role")
+  return db.orm.public.Member.select(
+    "id",
+    "workspaceId",
+    "role",
+    "name",
+    "imageUrl",
+  )
     .where({ userId })
     .first();
+}
+
+export async function updateMemberProfile(
+  memberId: string,
+  profile: { name: string; imageUrl: string | null },
+) {
+  return db.orm.public.Member.where({ id: memberId })
+    .select("id")
+    .update(profile);
 }
 
 export async function findWorkspaceByUserId(userId: string) {
@@ -45,18 +61,4 @@ export async function createWorkspaceWithOwner({
     }
     throw error;
   }
-}
-
-function isUniqueViolation(error: unknown): boolean {
-  let current = error;
-  while (typeof current === "object" && current !== null) {
-    if (
-      ("sqlState" in current && current.sqlState === "23505") ||
-      ("code" in current && current.code === "23505")
-    ) {
-      return true;
-    }
-    current = "cause" in current ? current.cause : undefined;
-  }
-  return false;
 }

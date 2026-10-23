@@ -1,6 +1,6 @@
 "use client";
 
-import type { Conversation } from "@marshaldesk/shared";
+import type { ConversationSummary } from "@marshaldesk/shared";
 import { cn } from "cn";
 import { Inbox } from "lucide-react";
 
@@ -34,7 +34,7 @@ export function ConversationList({
   onFilterChange,
   onSelect,
 }: {
-  conversations: Conversation[];
+  conversations: ConversationSummary[];
   filter: InboxFilter;
   selectedId: string | null;
   avatars: Record<string, string>;

@@ -1,162 +1,112 @@
 "use client";
 
+import type { Conversation, ConversationSummary } from "@marshaldesk/shared";
+import { ORPCError } from "@orpc/client";
 import {
-  assertNever,
-  type Conversation,
-  type Message,
-  type SystemEvent,
-} from "@marshaldesk/shared";
-import { useState } from "react";
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
+import * as z from "zod";
 
-// Mock stand-in for the inbox procedures: applies Flow C transitions to local
-// state only, so everything resets on reload.
+import { orpc } from "@/lib/orpc";
 
-type Stamp = { at: Date; ids: [string, string] };
+export type InboxActions = {
+  reply: (id: string, body: string) => Promise<unknown>;
+  takeOver: (id: string) => void;
+  handBack: (id: string) => void;
+  close: (id: string) => void;
+};
 
-function newStamp(): Stamp {
-  return { at: new Date(), ids: [crypto.randomUUID(), crypto.randomUUID()] };
-}
-
-function blankMessage(id: string, at: Date): Message {
-  return {
-    id,
-    author: "system",
-    memberId: null,
-    body: "",
-    attachments: [],
-    classification: null,
-    declined: false,
-    systemEvent: null,
-    agentTurn: null,
-    sources: [],
-    createdAt: at,
-  };
-}
-
-function systemMessage(event: SystemEvent, stamp: Stamp): Message {
-  return { ...blankMessage(stamp.ids[0], stamp.at), systemEvent: event };
-}
-
-function memberMessage(body: string, stamp: Stamp): Message {
-  return { ...blankMessage(stamp.ids[1], stamp.at), author: "member", body };
-}
-
-function append(conversation: Conversation, message: Message): Conversation {
+function toSummary({ messages, ...conversation }: Conversation) {
   return {
     ...conversation,
-    messages: [...conversation.messages, message],
-    lastMessageAt: message.createdAt,
-  };
+    lastMessage:
+      messages.findLast((message) => message.author !== "system") ?? null,
+  } satisfies ConversationSummary;
 }
 
-function takeOver(conversation: Conversation, stamp: Stamp): Conversation {
-  switch (conversation.state) {
-    case "ai":
-    case "waiting":
-      return {
-        ...append(conversation, systemMessage("taken_over", stamp)),
-        state: "human",
-      };
-    case "human":
-    case "closed":
-      return conversation;
-    default:
-      return assertNever(conversation.state);
-  }
+function errorMessage(error: unknown) {
+  return error instanceof ORPCError &&
+    (error.code === "CONFLICT" || error.code === "NOT_FOUND")
+    ? error.message
+    : "Something went wrong. Try again.";
 }
 
-function handBack(conversation: Conversation, stamp: Stamp): Conversation {
-  switch (conversation.state) {
-    case "human":
-      return {
-        ...append(conversation, systemMessage("handed_back", stamp)),
-        state: "ai",
-      };
-    case "ai":
-    case "waiting":
-    case "closed":
-      return conversation;
-    default:
-      return assertNever(conversation.state);
-  }
-}
+export function useInbox(openId: string | null) {
+  const queryClient = useQueryClient();
+  const listKey = orpc.inbox.list.queryKey();
+  const validOpenId = z.uuid().safeParse(openId).success ? openId : null;
 
-function close(conversation: Conversation, stamp: Stamp): Conversation {
-  switch (conversation.state) {
-    case "ai":
-    case "waiting":
-    case "human":
-      return {
-        ...append(conversation, systemMessage("closed", stamp)),
-        state: "closed",
-        closedAt: stamp.at,
-      };
-    case "closed":
-      return conversation;
-    default:
-      return assertNever(conversation.state);
-  }
-}
+  const { data: conversations } = useSuspenseQuery({
+    ...orpc.inbox.list.queryOptions(),
+    refetchOnWindowFocus: "always",
+  });
+  const open = useQuery({
+    ...orpc.inbox.conversation.queryOptions({
+      input: { id: validOpenId ?? "" },
+    }),
+    enabled: validOpenId !== null,
+    refetchOnWindowFocus: "always",
+  });
 
-function reply(
-  conversation: Conversation,
-  body: string,
-  stamp: Stamp,
-): Conversation {
-  switch (conversation.state) {
-    case "ai":
-    case "waiting":
-      return append(takeOver(conversation, stamp), memberMessage(body, stamp));
-    case "human":
-      return append(conversation, memberMessage(body, stamp));
-    case "closed":
-      return conversation;
-    default:
-      return assertNever(conversation.state);
-  }
-}
-
-export function useInbox(initial: Conversation[], openId: string | null) {
-  const [conversations, setConversations] = useState(() =>
-    initial.map((conversation) =>
-      conversation.id === openId
-        ? { ...conversation, unread: false }
-        : conversation,
-    ),
-  );
-
-  function update(
-    id: string,
-    change: (conversation: Conversation) => Conversation,
-  ) {
-    setConversations((current) =>
-      current.map((conversation) =>
-        conversation.id === id ? change(conversation) : conversation,
+  function save(conversation: Conversation) {
+    queryClient.setQueryData(
+      orpc.inbox.conversation.queryKey({ input: { id: conversation.id } }),
+      conversation,
+    );
+    queryClient.setQueryData(listKey, (list) =>
+      list?.map((item) =>
+        item.id === conversation.id ? toSummary(conversation) : item,
       ),
     );
   }
 
+  // A conflict means someone else moved the conversation: show what's true now.
+  function refresh() {
+    void queryClient.invalidateQueries({ queryKey: orpc.inbox.key() });
+  }
+
+  const options = { onSuccess: save, onError: refresh };
+  const reply = useMutation(orpc.inbox.reply.mutationOptions(options));
+  const takeOver = useMutation(orpc.inbox.takeOver.mutationOptions(options));
+  const handBack = useMutation(orpc.inbox.handBack.mutationOptions(options));
+  const close = useMutation(orpc.inbox.close.mutationOptions(options));
+  const markRead = useMutation(
+    orpc.inbox.markRead.mutationOptions({
+      onMutate: ({ id }) => {
+        queryClient.setQueryData(listKey, (list) =>
+          list?.map((item) =>
+            item.id === id ? { ...item, unread: false } : item,
+          ),
+        );
+        queryClient.setQueryData(
+          orpc.inbox.conversation.queryKey({ input: { id } }),
+          (conversation) =>
+            conversation ? { ...conversation, unread: false } : conversation,
+        );
+      },
+    }),
+  );
+
+  const mutations = [reply, takeOver, handBack, close];
+  const failed = mutations.find((mutation) => mutation.isError);
+
+  const actions: InboxActions = {
+    reply: (id, body) => reply.mutateAsync({ id, body }),
+    takeOver: (id) => takeOver.mutate({ id }),
+    handBack: (id) => handBack.mutate({ id }),
+    close: (id) => close.mutate({ id }),
+  };
+
   return {
     conversations,
-    markRead: (id: string) =>
-      update(id, (conversation) => ({ ...conversation, unread: false })),
-    takeOver: (id: string) => {
-      const stamp = newStamp();
-      update(id, (conversation) => takeOver(conversation, stamp));
-    },
-    handBack: (id: string) => {
-      const stamp = newStamp();
-      update(id, (conversation) => handBack(conversation, stamp));
-    },
-    close: (id: string) => {
-      const stamp = newStamp();
-      update(id, (conversation) => close(conversation, stamp));
-    },
-    reply: (id: string, body: string) => {
-      const stamp = newStamp();
-      update(id, (conversation) => reply(conversation, body, stamp));
-    },
+    open: open.data ?? null,
+    openLoading: validOpenId !== null && open.isPending,
+    actions,
+    markRead: (id: string) => markRead.mutate({ id }),
+    busy: mutations.some((mutation) => mutation.isPending),
+    error: failed ? errorMessage(failed.error) : null,
   };
 }
-
-export type InboxActions = Omit<ReturnType<typeof useInbox>, "conversations">;

@@ -6,3 +6,4 @@ packages/db/src/prisma/contract.json
 packages/db/migrations
 .claude/
 .mcp.json
+apps/web/public/embed.js

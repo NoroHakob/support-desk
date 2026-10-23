@@ -1,1 +1,4 @@
 .env.local
+
+# Built from embed/embed.ts by `pnpm embed:build`
+/public/embed.js

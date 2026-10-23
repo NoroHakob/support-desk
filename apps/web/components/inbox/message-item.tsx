@@ -7,24 +7,12 @@ import {
 } from "@marshaldesk/shared";
 import { cn } from "cn";
 import { FileText } from "lucide-react";
-import { Streamdown } from "streamdown";
 
 import { AgentTurnPanel } from "@/components/inbox/agent-turn-panel";
+import { MessageMarkdown as MessageBody } from "@/components/message-markdown";
 import { Badge } from "@/components/ui/badge";
 import { systemEventText } from "@/lib/conversation-copy";
 import { formatDateTime, formatShortAgo } from "@/lib/format";
-
-function MessageBody({ body }: { body: string }) {
-  return (
-    <Streamdown
-      mode="static"
-      controls={false}
-      className="text-sm leading-relaxed wrap-break-word [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
-    >
-      {body}
-    </Streamdown>
-  );
-}
 
 function Meta({ children, at }: { children?: React.ReactNode; at: Date }) {
   return (
