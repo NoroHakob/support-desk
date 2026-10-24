@@ -1,16 +1,16 @@
-import type { findConversation } from "@marshaldesk/db";
+import {
+  toConversation,
+  toWidgetConversation,
+  type findConversation,
+} from "@marshaldesk/db";
 import {
   encodeRealtimeEvent,
+  sendRealtimeEvent,
   summarizeConversation,
   type ConversationServerEvent,
   type RealtimeParty,
   type WorkspaceEvent,
 } from "@marshaldesk/shared";
-
-import {
-  toConversation,
-  toWidgetConversation,
-} from "@/server/conversation-dto";
 
 type ConversationRow = NonNullable<
   Awaited<ReturnType<typeof findConversation>>
@@ -19,12 +19,9 @@ type ConversationRow = NonNullable<
 /** Next's `after()`, passed in by the route handlers through the context. */
 export type Defer = (task: () => Promise<void>) => void;
 
-const PUBLISH_TIMEOUT_MS = 2000;
-
 let warnedMissingConfig = false;
 
-// Runs after the response is sent. The write is already saved, so a failed
-// publish is only logged: clients catch up from the API when they reconnect.
+// Runs after the response is sent.
 function publish(
   defer: Defer | undefined,
   party: RealtimeParty,
@@ -42,29 +39,9 @@ function publish(
     }
     return;
   }
-  (defer ?? ((task) => void task()))(async () => {
-    try {
-      const response = await fetch(
-        new URL(`/parties/${party}/${room}`, baseUrl),
-        {
-          method: "POST",
-          headers: {
-            authorization: `Bearer ${secret}`,
-            "content-type": "application/json",
-          },
-          body,
-          signal: AbortSignal.timeout(PUBLISH_TIMEOUT_MS),
-        },
-      );
-      if (!response.ok) {
-        console.error(
-          `Publishing to ${party}/${room} failed with status ${response.status}.`,
-        );
-      }
-    } catch (error) {
-      console.error(`Publishing to ${party}/${room} failed.`, error);
-    }
-  });
+  (defer ?? ((task) => void task()))(() =>
+    sendRealtimeEvent({ baseUrl, secret, party, room, body }),
+  );
 }
 
 export function publishConversationEvent(

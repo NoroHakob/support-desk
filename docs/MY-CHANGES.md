@@ -34,6 +34,7 @@ The Neon AI Gateway needs a paid plan, so it is **not used**. This replaces the 
 - No Google Search grounding.
 - Reasoning effort: replace `providerOptions.openai.reasoningEffort` with the Google provider's thinking setting: the lowest level for the classifier, short replies and answers, a moderate level for suggested questions. Check the Google provider page on ai-sdk.dev for the exact option names; don't guess.
 - Embeddings: keep `vector(1024)`. Drop the Qwen query instruction prefix. If the Google provider supports retrieval task types (query vs document), use them; otherwise embed both the same way. Check whether returned vectors are unit length; if not, normalize them before saving and before searching.
+- Embedding prefixes (decided Oct 25, 2026): `gemini-embedding-2` rejects `taskType`, so use Google's recommended retrieval prefixes instead: chunks are embedded as `title: <source name> | text: <chunk>` and questions as `task: search result | query: <question>` (`packages/shared/src/agent.ts`). Vectors are normalized to unit length either way.
 - Jan's note "No Gemini" in TECH-STACK section 8 is about the Neon provider only and does not apply here.
 - The retrieval thresholds (0.5 / 0.4) were tuned for Qwen3. Keep them as starting values; they'll be retuned with the PRD section 9 checklist.
 
@@ -45,12 +46,13 @@ The Neon AI Gateway needs a paid plan, so it is **not used**. This replaces the 
 - Suggested-question regeneration costs one request per knowledge base change. Don't trigger it more often than the PRD requires.
 - This is not a product rate limit. Rate limits and usage quotas stay a non-goal.
 
-## 5. Database and migrations
+## 5. Database, storage and migrations
 
 - Neon Free plan, Frankfurt region (`aws-eu-central-1`).
 - Migrations use Prisma as in TECH-STACK, on the Neon `development` branch first.
 - One new migration per change. **Never edit or delete an existing migration file.**
 - After creating a migration, tell me its name and the exact command to apply it. Never apply anything to `production` unless I ask.
+- Source files go in a private bucket `knowledge-files` (key `workspaces/<workspaceId>/sources/<sourceId>.<ext>`), not the `uploads` bucket from TECH-STACK section 10. `uploads` on `development` is inherited from `production`, so its CORS could only be changed there. `knowledge-files` was created on `development`; production gets its own at deploy time (`neon.ts` declares it). Its CORS is set by `pnpm --filter @marshaldesk/web storage:cors`.
 
 ## 6. Git and deployment
 

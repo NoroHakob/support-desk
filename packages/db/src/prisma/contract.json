@@ -4,6 +4,10 @@
   "target": "postgres",
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "roots": {
+    "chunks": {
+      "model": "Chunk",
+      "namespace": "public"
+    },
     "conversations": {
       "model": "Conversation",
       "namespace": "public"
@@ -250,6 +254,123 @@
           }
         },
         "models": {
+          "Chunk": {
+            "fields": {
+              "content": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar"
+                }
+              },
+              "embedding": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/vector@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 1024
+                  }
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "position": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "sourceId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "workspaceId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "source": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "sourceId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Source",
+                  "namespace": "public"
+                }
+              },
+              "workspace": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "workspaceId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Workspace",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "content": {
+                  "column": "content"
+                },
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "embedding": {
+                  "column": "embedding"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "position": {
+                  "column": "position"
+                },
+                "sourceId": {
+                  "column": "source_id"
+                },
+                "workspaceId": {
+                  "column": "workspace_id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "chunks"
+            }
+          },
           "Conversation": {
             "fields": {
               "closedAt": {
@@ -729,6 +850,13 @@
                   "kind": "scalar"
                 }
               },
+              "etag": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -844,6 +972,9 @@
                 },
                 "error": {
                   "column": "error"
+                },
+                "etag": {
+                  "column": "etag"
                 },
                 "id": {
                   "column": "id"
@@ -1114,6 +1245,13 @@
                   "kind": "scalar"
                 }
               },
+              "knowledgeVersion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "name": {
                 "nullable": false,
                 "type": {
@@ -1135,6 +1273,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "suggestedQuestionsVersion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
                   "kind": "scalar"
                 }
               },
@@ -1193,6 +1338,9 @@
                 "id": {
                   "column": "id"
                 },
+                "knowledgeVersion": {
+                  "column": "knowledge_version"
+                },
                 "name": {
                   "column": "name"
                 },
@@ -1201,6 +1349,9 @@
                 },
                 "suggestedQuestions": {
                   "column": "suggested_questions"
+                },
+                "suggestedQuestionsVersion": {
+                  "column": "suggested_questions_version"
                 },
                 "updatedAt": {
                   "column": "updated_at"
@@ -1225,6 +1376,123 @@
       "public": {
         "entries": {
           "table": {
+            "chunks": {
+              "columns": {
+                "content": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "created_at": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "embedding": {
+                  "codecId": "pg/vector@1",
+                  "dataType": "pgvector/vector",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 1024
+                  }
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "position": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "source_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "workspace_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "chunks_workspace_id_idx_90a9f461"
+                  },
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "workspace_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "chunks"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "workspaces"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "chunks_source_id_idx_b2d19e21"
+                  },
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "source_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "chunks"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "sources"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "source_id"
+                  ],
+                  "name": "chunks_source_id_idx_b2d19e21",
+                  "prefix": "chunks_source_id_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "source_id",
+                    "position"
+                  ],
+                  "name": "chunks_source_id_position_idx_6221f888",
+                  "prefix": "chunks_source_id_position_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "workspace_id"
+                  ],
+                  "name": "chunks_workspace_id_idx_90a9f461",
+                  "prefix": "chunks_workspace_id_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "conversations": {
               "checks": [
                 {
@@ -1725,6 +1993,11 @@
                   "dataType": "pg/text",
                   "nullable": true
                 },
+                "etag": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
                 "id": {
                   "codecId": "pg/uuid@1",
                   "dataType": "pg/uuid",
@@ -2058,6 +2331,15 @@
                   "dataType": "pg/uuid",
                   "nullable": false
                 },
+                "knowledge_version": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
                 "name": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
@@ -2077,6 +2359,15 @@
                   },
                   "many": {
                     "elementNullable": false
+                  },
+                  "nullable": false
+                },
+                "suggested_questions_version": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
                   },
                   "nullable": false
                 },
@@ -2228,12 +2519,34 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "037164dec59bbe9a3a877ad888436c1dfd07c4581bee67c3cc5b06e7762c90cd"
+    "storageHash": "97e9074f60bb84fbc33b85db810c79de6af4b75095e90422fef83dfe8af52a87"
   },
   "execution": {
-    "executionHash": "8feee2bef72b9b936c8bb504bb033e87f05088e207dd03bed99b7ad4c60dd779",
+    "executionHash": "385abfc9c8fef6cbd1156c9f16e5dd65283833b3d84ae8158335d248ee446227",
     "mutations": {
       "defaults": [
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "chunks",
+            "field": "created_at",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "chunks",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
         {
           "onCreate": {
             "id": "timestampNow",
@@ -2397,6 +2710,7 @@
       "lateral": true,
       "limit": true,
       "orderBy": true,
+      "pgvector.cosine": true,
       "returning": true
     },
     "sql": {
@@ -2415,7 +2729,48 @@
       "scalarList": true
     }
   },
-  "extensions": {},
+  "extensions": {
+    "pgvector": {
+      "capabilities": {
+        "postgres": {
+          "pgvector.cosine": true
+        }
+      },
+      "familyId": "sql",
+      "id": "pgvector",
+      "kind": "extension",
+      "targetId": "postgres",
+      "types": {
+        "codecTypes": {
+          "import": {
+            "alias": "PgVectorTypes",
+            "named": "CodecTypes",
+            "package": "@internal/extension-pgvector/codec-types"
+          },
+          "parameterizedOutputTypes": {
+            "alias": "PgVectorParameterizedOutputTypes",
+            "named": "ParameterizedOutputTypesForTypeParams",
+            "package": "@internal/extension-pgvector/codec-types"
+          }
+        },
+        "operationTypes": {
+          "import": {
+            "alias": "PgVectorOperationTypes",
+            "named": "OperationTypes",
+            "package": "@internal/extension-pgvector/operation-types"
+          }
+        },
+        "queryOperationTypes": {
+          "import": {
+            "alias": "PgVectorQueryOperationTypes",
+            "named": "QueryOperationTypes",
+            "package": "@internal/extension-pgvector/operation-types"
+          }
+        }
+      },
+      "version": "0.0.1"
+    }
+  },
   "meta": {},
   "_generated": {
     "warning": "⚠️  GENERATED FILE - DO NOT EDIT",

@@ -6,6 +6,7 @@ import { RPCJsonSerializer } from "@orpc/client";
 import * as z from "zod";
 
 import { conversationSummarySchema } from "./conversation";
+import { sourceSchema } from "./source";
 import { widgetConversationSchema } from "./widget-chat";
 
 export const REALTIME_TOKEN_AUDIENCE = "realtime";
@@ -74,6 +75,12 @@ export const workspaceEventSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("conversation.read"),
     conversationId: z.uuid(),
+  }),
+  z.object({ type: z.literal("source.updated"), source: sourceSchema }),
+  z.object({ type: z.literal("source.deleted"), sourceId: z.uuid() }),
+  z.object({
+    type: z.literal("knowledge.updated"),
+    suggestedQuestions: z.array(z.string()),
   }),
 ]);
 

@@ -1,0 +1,23 @@
+{
+  "name": "@marshaldesk/functions",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "4.0.105",
+    "@aws-sdk/client-s3": "^3.1156.0",
+    "@marshaldesk/db": "workspace:*",
+    "@marshaldesk/shared": "workspace:*",
+    "@neon/functions": "0.11.0",
+    "ai": "7.0.153",
+    "unpdf": "1.9.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "typescript": "^5.9.3"
+  }
+}

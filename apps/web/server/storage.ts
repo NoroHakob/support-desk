@@ -79,3 +79,39 @@ export async function deleteProfileImage(key: string) {
     new DeleteObjectCommand({ Bucket: PROFILE_IMAGES_BUCKET, Key: key }),
   );
 }
+
+export const KNOWLEDGE_FILES_BUCKET = "knowledge-files";
+
+export async function presignKnowledgeFilePut({
+  key,
+  contentType,
+  contentLength,
+  expiresIn,
+}: {
+  key: string;
+  contentType: string;
+  contentLength: number;
+  expiresIn: number;
+}) {
+  // The browser sets Content-Length itself, so it's signed but not returned.
+  const url = await getSignedUrl(
+    s3,
+    new PutObjectCommand({
+      Bucket: KNOWLEDGE_FILES_BUCKET,
+      Key: key,
+      ContentType: contentType,
+      ContentLength: contentLength,
+    }),
+    {
+      expiresIn,
+      signableHeaders: new Set(["content-type", "content-length"]),
+    },
+  );
+  return { url, headers: { "Content-Type": contentType } };
+}
+
+export async function deleteKnowledgeFile(key: string) {
+  await s3.send(
+    new DeleteObjectCommand({ Bucket: KNOWLEDGE_FILES_BUCKET, Key: key }),
+  );
+}

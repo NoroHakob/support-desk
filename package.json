@@ -10,6 +10,8 @@
     "build": "pnpm --filter @marshaldesk/web build",
     "realtime:dev": "pnpm --filter @marshaldesk/realtime run dev",
     "realtime:deploy:dev": "pnpm --filter @marshaldesk/realtime run deploy:dev",
+    "functions:plan:dev": "neon config plan --project-id cool-surf-05710594 --branch development --env apps/web/.env.local",
+    "functions:deploy:dev": "neon deploy --project-id cool-surf-05710594 --branch development --env apps/web/.env.local",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -18,6 +20,7 @@
     "env:secret": "node scripts/env.mjs secret"
   },
   "devDependencies": {
+    "@neon/config": "1.9.3",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.4.2",
     "eslint-config-prettier": "^10.1.8",

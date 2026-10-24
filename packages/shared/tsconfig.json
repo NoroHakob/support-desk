@@ -1,4 +1,8 @@
 {
   "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // fetch, URL and console, which Node, Workers and browsers all provide.
+    "lib": ["ES2023", "DOM"]
+  },
   "include": ["src"]
 }

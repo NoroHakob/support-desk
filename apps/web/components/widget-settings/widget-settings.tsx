@@ -3,8 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   GREETING_MAX_LENGTH,
-  SOURCE_FILE_MAX_BYTES,
-  sourceFileTypes,
   widgetColorHex,
   widgetSettingsInputSchema,
   type WidgetSettingsInput,
@@ -18,13 +16,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { useDashboardAccent } from "@/components/dashboard/accent-provider";
-import { Dropzone } from "@/components/dashboard/dropzone";
 import { PageHeader } from "@/components/dashboard/page-header";
 import {
   SettingsBlock,
   SettingsRow,
   SettingsSection,
 } from "@/components/dashboard/settings-section";
+import { KnowledgeBase } from "@/components/knowledge/knowledge-base";
 import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,7 +35,6 @@ import {
   SetupProgress,
   type SetupStep,
 } from "@/components/widget-settings/setup-progress";
-import { SourceRow } from "@/components/widget-settings/source-row";
 import { useAgentAvatar } from "@/components/widget-settings/use-agent-avatar";
 import { useAutosave } from "@/components/widget-settings/use-autosave";
 import { WidgetPreview } from "@/components/widget-settings/widget-preview";
@@ -125,15 +122,17 @@ export function WidgetSettings({
     [avatarSeed, accentHex],
   );
   const avatarUrl = settings.agentAvatarUrl ?? generatedAvatarUrl;
-  const readySources = sources.filter((source) => source.status === "ready");
-  const agentOn = readySources.length > 0;
+  // A source being reprocessed keeps answering from its previous chunks.
+  const answeringSources = sources.filter((source) => source.chunkCount > 0);
+  const agentOn = answeringSources.length > 0;
   const previewName = agentName.trim() || settings.agentName;
 
   const steps: SetupStep[] = [
     {
       id: "source",
       title: "Add a source",
-      description: "Add a file so the agent has something to answer from.",
+      description:
+        "Add a file or some text so the agent has something to answer from.",
       href: "#knowledge-base",
       done: sources.length > 0,
     },
@@ -298,35 +297,10 @@ export function WidgetSettings({
               </SettingsBlock>
             </SettingsSection>
 
-            <SettingsSection
-              id="knowledge-base"
-              title="Knowledge base"
-              description={
-                agentOn
-                  ? `The agent answers from ${readySources.length} ready ${readySources.length === 1 ? "source" : "sources"}.`
-                  : "The agent is off until a source is ready. Until then, every conversation comes to you."
-              }
-            >
-              <SettingsBlock>
-                <Dropzone
-                  multiple
-                  disabled
-                  accept={sourceFileTypes}
-                  typeLabel="PDF, Markdown or text"
-                  maxBytes={SOURCE_FILE_MAX_BYTES}
-                  title="File uploads are coming soon"
-                  description="PDF, Markdown or text, up to 10 MB each."
-                  onFiles={() => undefined}
-                />
-              </SettingsBlock>
-              {sources.length > 0 ? (
-                <ul className="divide-y">
-                  {sources.map((source) => (
-                    <SourceRow key={source.id} source={source} />
-                  ))}
-                </ul>
-              ) : null}
-            </SettingsSection>
+            <KnowledgeBase
+              sources={sources}
+              answeringCount={answeringSources.length}
+            />
 
             <SettingsSection
               id="install"

@@ -3,14 +3,12 @@ import {
   findConversation,
   listInboxConversations,
   markConversationRead,
+  toConversation,
+  toConversationSummary,
   type TransitionResult,
 } from "@marshaldesk/db";
 import { assertNever, type ConversationAction } from "@marshaldesk/shared";
 
-import {
-  toConversation,
-  toConversationSummary,
-} from "@/server/conversation-dto";
 import { ownerProcedure } from "@/server/orpc/base";
 import {
   publishConversation,

@@ -1,5 +1,9 @@
 // use prisma-8
 
+types {
+  Embedding = pgvector.Vector(1024)
+}
+
 enum MemberRole {
   @@type("pg/text@1")
   owner = "owner"
@@ -37,18 +41,22 @@ enum SourceStatus {
 }
 
 model Workspace {
-  id                 Uuid                     @id @onCreate(uuid())
-  name               String
-  widgetPosition     WidgetPosition           @default(bottomRight) @map("widget_position")
-  widgetColor        WidgetColor              @default(blue) @map("widget_color")
-  agentName          String                   @map("agent_name")
-  agentAvatarKey     String?                  @map("agent_avatar_key")
-  greeting           String                   @default("Hi there! How can we help you today?")
-  allowedDomains     String[]                 @default(sql`'{}'`) @map("allowed_domains")
-  suggestedQuestions String[]                 @default(sql`'{}'`) @map("suggested_questions")
-  snippetInstalledAt TimestamptzJsDate?       @map("snippet_installed_at")
-  createdAt          temporal.CreatedAtJsDate @map("created_at")
-  updatedAt          temporal.UpdatedAtJsDate @map("updated_at")
+  id                        Uuid                     @id @onCreate(uuid())
+  name                      String
+  widgetPosition            WidgetPosition           @default(bottomRight) @map("widget_position")
+  widgetColor               WidgetColor              @default(blue) @map("widget_color")
+  agentName                 String                   @map("agent_name")
+  agentAvatarKey            String?                  @map("agent_avatar_key")
+  greeting                  String                   @default("Hi there! How can we help you today?")
+  allowedDomains            String[]                 @default(sql`'{}'`) @map("allowed_domains")
+  suggestedQuestions        String[]                 @default(sql`'{}'`) @map("suggested_questions")
+  snippetInstalledAt        TimestamptzJsDate?       @map("snippet_installed_at")
+  // Bumped whenever the chunks change. Suggested questions record the version
+  // they were generated from, so a batch of uploads regenerates them once.
+  knowledgeVersion          Int                      @default(0) @map("knowledge_version")
+  suggestedQuestionsVersion Int                      @default(0) @map("suggested_questions_version")
+  createdAt                 temporal.CreatedAtJsDate @map("created_at")
+  updatedAt                 temporal.UpdatedAtJsDate @map("updated_at")
 
   @@map("workspaces")
 }
@@ -82,12 +90,32 @@ model Source {
   error       String?
   // Claimed by each ingest run, so only the latest run may swap the chunks.
   revision    Int                      @default(0)
+  // ETag of the file the current chunks came from; a repeated trigger for the
+  // same object is skipped.
+  etag        String?
   createdAt   temporal.CreatedAtJsDate @map("created_at")
   updatedAt   temporal.UpdatedAtJsDate @map("updated_at")
 
   @@index([workspaceId, createdAt])
   @@index([workspaceId, name], unique: true, where: sql`(kind = 'file')`, name: "sources_workspace_file_name_key")
   @@map("sources")
+}
+
+model Chunk {
+  id          Uuid                     @id @onCreate(uuid())
+  workspaceId Uuid                     @map("workspace_id")
+  workspace   Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  sourceId    Uuid                     @map("source_id")
+  source      Source                   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  position    Int
+  content     String
+  // Unit length, so cosine similarity is a plain dot product.
+  embedding   Embedding
+  createdAt   temporal.CreatedAtJsDate @map("created_at")
+
+  @@index([workspaceId])
+  @@index([sourceId, position])
+  @@map("chunks")
 }
 
 enum VisitorDevice {

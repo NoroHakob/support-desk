@@ -5,12 +5,41 @@ export {
   findConversation,
   findOpenConversationId,
   findVisitorConversationId,
+  listIdleConversations,
   listInboxConversations,
   listVisitorConversations,
   markConversationRead,
   type TransitionResult,
 } from "./conversations";
-export { hasReadySource, listSources } from "./sources";
+export {
+  toConversation,
+  toConversationSummary,
+  toWidgetConversation,
+} from "./conversation-dto";
+export {
+  claimSuggestedQuestions,
+  listKnowledgeSample,
+  listWorkspacesNeedingQuestions,
+  releaseSuggestedQuestions,
+  saveSuggestedQuestions,
+} from "./knowledge";
+export {
+  claimIngest,
+  createTextSource,
+  deleteSource,
+  failIngest,
+  findSource,
+  findSourceByStorageKey,
+  findSourceDetail,
+  finishIngest,
+  hasKnowledge,
+  hasPendingSources,
+  listSources,
+  listStuckSources,
+  markSourceReady,
+  saveFileSource,
+  updateTextSource,
+} from "./sources";
 export {
   createVisitor,
   findVisitor,

@@ -14,6 +14,7 @@ import { useEffect } from "react";
 import { useRealtimeRoom } from "@/hooks/use-realtime-room";
 import { playNotificationSound } from "@/lib/notification-sound";
 import { client, orpc } from "@/lib/orpc";
+import { upsertSource } from "@/lib/sources";
 import { lastMessagePreview, visitorTitle } from "@/lib/visitor";
 
 const BADGE_PATTERN = /^\(\d+\) /;
@@ -64,8 +65,8 @@ function useTabBadge(count: number) {
 }
 
 /**
- * Keeps the inbox live on every dashboard page and notifies the owner about
- * new visitor messages that need them (PRD D-6).
+ * Keeps the inbox and the knowledge base live on every dashboard page and
+ * notifies the owner about new visitor messages that need them (PRD D-6).
  */
 export function DashboardRealtime({ workspaceId }: { workspaceId: string }) {
   const queryClient = useQueryClient();
@@ -139,6 +140,32 @@ export function DashboardRealtime({ workspaceId }: { workspaceId: string }) {
             conversation ? { ...conversation, unread: false } : conversation,
         );
         break;
+      case "source.updated": {
+        const { source } = event;
+        queryClient.setQueryData(orpc.knowledge.sources.queryKey(), (list) =>
+          upsertSource(list, source),
+        );
+        void queryClient.invalidateQueries({
+          queryKey: orpc.knowledge.source.queryKey({
+            input: { id: source.id },
+          }),
+        });
+        break;
+      }
+      case "source.deleted":
+        queryClient.setQueryData(orpc.knowledge.sources.queryKey(), (list) =>
+          list?.filter((item) => item.id !== event.sourceId),
+        );
+        break;
+      case "knowledge.updated":
+        queryClient.setQueryData(
+          orpc.widgetSettings.get.queryKey(),
+          (settings) =>
+            settings
+              ? { ...settings, suggestedQuestions: event.suggestedQuestions }
+              : settings,
+        );
+        break;
       default:
         return assertNever(event);
     }
@@ -151,8 +178,13 @@ export function DashboardRealtime({ workspaceId }: { workspaceId: string }) {
     getToken: async () =>
       (await client.realtime.getToken({ party: "workspace" })).token,
     onEvent: apply,
-    onSync: () =>
-      void queryClient.invalidateQueries({ queryKey: orpc.inbox.key() }),
+    onSync: () => {
+      void queryClient.invalidateQueries({ queryKey: orpc.inbox.key() });
+      void queryClient.invalidateQueries({ queryKey: orpc.knowledge.key() });
+      void queryClient.invalidateQueries({
+        queryKey: orpc.widgetSettings.key(),
+      });
+    },
   });
 
   return null;

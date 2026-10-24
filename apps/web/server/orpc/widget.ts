@@ -7,15 +7,15 @@ import {
   findVisitor,
   findVisitorConversationId,
   findWidgetSettings,
-  hasReadySource,
+  hasKnowledge,
   listVisitorConversations,
   markSnippetInstalled,
   recordVisit,
+  toWidgetConversation,
 } from "@marshaldesk/db";
 import { assertNever } from "@marshaldesk/shared";
 import { ORPCError } from "@orpc/server";
 
-import { toWidgetConversation } from "@/server/conversation-dto";
 import { os, visitorProcedure } from "@/server/orpc/base";
 import { publishConversation, type Defer } from "@/server/realtime/publish";
 import { signRealtimeToken } from "@/server/realtime/token";
@@ -65,7 +65,7 @@ export const widget = {
       agentAvatarUrl: settings.agentAvatarUrl,
       greeting: settings.greeting,
       suggestedQuestions: settings.suggestedQuestions,
-      agentOn: await hasReadySource(input.workspaceId),
+      agentOn: await hasKnowledge(input.workspaceId),
     };
   }),
 
@@ -157,7 +157,7 @@ export const widget = {
         visitorId: context.visitorId,
         body: input.body,
         greeting: context.widgetSettings.greeting,
-        agentOn: await hasReadySource(context.workspaceId),
+        agentOn: await hasKnowledge(context.workspaceId),
         now: new Date(),
       });
       return loadAndPublish(

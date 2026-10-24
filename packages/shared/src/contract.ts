@@ -13,7 +13,15 @@ import {
   widgetRealtimeTokenInputSchema,
   widgetRealtimeTokenSchema,
 } from "./realtime";
-import { sourceSchema } from "./source";
+import {
+  createSourceUploadInputSchema,
+  sourceDetailSchema,
+  sourceIdInputSchema,
+  sourceSchema,
+  sourceUploadSchema,
+  textSourceInputSchema,
+  updateTextSourceInputSchema,
+} from "./source";
 import {
   avatarUploadSchema,
   confirmAvatarUploadInputSchema,
@@ -30,6 +38,10 @@ import {
   widgetStartSchema,
 } from "./widget-chat";
 import { createWorkspaceInputSchema, workspaceSchema } from "./workspace";
+
+const sourceErrors = {
+  NOT_FOUND: { message: "We couldn't find that source." },
+} as const;
 
 const conversationIdInputSchema = z.object({ id: z.uuid() });
 
@@ -136,6 +148,65 @@ export const contract = {
         }),
       )
       .output(z.array(sourceSchema)),
+    source: oc
+      .meta(
+        openapi({
+          method: "GET",
+          path: "/knowledge/sources/{id}",
+          summary: "Get a source with the chunks extracted from it",
+          tags: ["Knowledge base"],
+        }),
+      )
+      .errors(sourceErrors)
+      .input(sourceIdInputSchema)
+      .output(sourceDetailSchema),
+    createUpload: oc
+      .meta(
+        openapi({
+          method: "POST",
+          path: "/knowledge/sources/upload",
+          summary:
+            "Get a presigned URL to upload a file, replacing one with the same name",
+          tags: ["Knowledge base"],
+        }),
+      )
+      .input(createSourceUploadInputSchema)
+      .output(sourceUploadSchema),
+    createTextSource: oc
+      .meta(
+        openapi({
+          method: "POST",
+          path: "/knowledge/sources/text",
+          summary: "Add a text source",
+          tags: ["Knowledge base"],
+        }),
+      )
+      .input(textSourceInputSchema)
+      .output(sourceSchema),
+    updateTextSource: oc
+      .meta(
+        openapi({
+          method: "PUT",
+          path: "/knowledge/sources/{id}/text",
+          summary: "Edit a text source and process it again",
+          tags: ["Knowledge base"],
+        }),
+      )
+      .errors(sourceErrors)
+      .input(updateTextSourceInputSchema)
+      .output(sourceSchema),
+    deleteSource: oc
+      .meta(
+        openapi({
+          method: "DELETE",
+          path: "/knowledge/sources/{id}",
+          summary: "Delete a source and its chunks",
+          tags: ["Knowledge base"],
+        }),
+      )
+      .errors(sourceErrors)
+      .input(sourceIdInputSchema)
+      .output(z.void()),
   },
   // Called from the widget and the embed script on customers' websites.
   widget: {

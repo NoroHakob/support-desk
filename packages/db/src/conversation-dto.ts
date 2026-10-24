@@ -1,4 +1,4 @@
-import type { findConversation, listInboxConversations } from "@marshaldesk/db";
+import type { findConversation, listInboxConversations } from "./conversations";
 import type {
   Conversation,
   ConversationSummary,

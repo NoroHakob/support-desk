@@ -312,3 +312,12 @@ export async function markConversationRead(
     .select("id")
     .update({ memberReadAt: now });
 }
+
+/** Open conversations in every workspace with no messages since `before`. */
+export async function listIdleConversations(before: Date) {
+  return db.orm.public.Conversation.select("id", "workspaceId")
+    .where((conversation) => conversation.state.neq("closed"))
+    .where((conversation) => conversation.lastMessageAt.lt(before))
+    .limit(100)
+    .all();
+}
