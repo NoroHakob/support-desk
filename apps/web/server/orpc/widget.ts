@@ -5,6 +5,7 @@ import {
   findConversation,
   findOpenConversationId,
   findVisitor,
+  findVisitorConversationId,
   findWidgetSettings,
   hasReadySource,
   listVisitorConversations,
@@ -16,6 +17,8 @@ import { ORPCError } from "@orpc/server";
 
 import { toWidgetConversation } from "@/server/conversation-dto";
 import { os, visitorProcedure } from "@/server/orpc/base";
+import { publishConversation, type Defer } from "@/server/realtime/publish";
+import { signRealtimeToken } from "@/server/realtime/token";
 import { toWidgetSettings } from "@/server/orpc/widget-settings";
 import { isAllowedHost, isDevelopmentHost } from "@/server/widget/hosts";
 import { visitorDetails } from "@/server/widget/visitor-details";
@@ -30,11 +33,18 @@ import {
 
 const NEW_VISIT_AFTER_MS = 30 * 60 * 1000;
 
-async function loadConversation(workspaceId: string, conversationId: string) {
+// Loads what was just saved, publishes it, and returns the visitor's view.
+async function loadAndPublish(
+  after: Defer | undefined,
+  workspaceId: string,
+  conversationId: string,
+  visitorMessageId: string | null,
+) {
   const row = await findConversation(workspaceId, conversationId);
   if (!row) {
     throw new ORPCError("NOT_FOUND");
   }
+  publishConversation(after, workspaceId, row, visitorMessageId);
   return toWidgetConversation(row);
 }
 
@@ -142,7 +152,7 @@ export const widget = {
   // No agent runs yet: a message in the `ai` state waits for the owner.
   sendMessage: visitorProcedure.widget.sendMessage.handler(
     async ({ context, input }) => {
-      const conversationId = await addVisitorMessage({
+      const { conversationId, messageId } = await addVisitorMessage({
         workspaceId: context.workspaceId,
         visitorId: context.visitorId,
         body: input.body,
@@ -150,7 +160,12 @@ export const widget = {
         agentOn: await hasReadySource(context.workspaceId),
         now: new Date(),
       });
-      return loadConversation(context.workspaceId, conversationId);
+      return loadAndPublish(
+        context.after,
+        context.workspaceId,
+        conversationId,
+        messageId,
+      );
     },
   ),
 
@@ -181,7 +196,32 @@ export const widget = {
             return assertNever(result.reason);
         }
       }
-      return loadConversation(context.workspaceId, conversationId);
+      return loadAndPublish(
+        context.after,
+        context.workspaceId,
+        conversationId,
+        null,
+      );
+    },
+  ),
+
+  getRealtimeToken: visitorProcedure.widget.getRealtimeToken.handler(
+    async ({ context, input, errors }) => {
+      const conversationId = await findVisitorConversationId(
+        context.workspaceId,
+        context.visitorId,
+        input.conversationId ?? null,
+      );
+      if (!conversationId) {
+        throw errors.NOT_FOUND();
+      }
+      const token = await signRealtimeToken({
+        sub: context.visitorId,
+        role: "visitor",
+        wid: context.workspaceId,
+        cid: conversationId,
+      });
+      return { token, conversationId };
     },
   ),
 };

@@ -7,6 +7,12 @@ import {
   conversationSummarySchema,
   replyInputSchema,
 } from "./conversation";
+import {
+  realtimeTokenInputSchema,
+  realtimeTokenSchema,
+  widgetRealtimeTokenInputSchema,
+  widgetRealtimeTokenSchema,
+} from "./realtime";
 import { sourceSchema } from "./source";
 import {
   avatarUploadSchema,
@@ -195,6 +201,33 @@ export const contract = {
       )
       .errors(conversationErrors)
       .output(widgetConversationSchema),
+    getRealtimeToken: oc
+      .meta(
+        openapi({
+          method: "POST",
+          path: "/widget/realtime-token",
+          summary: "Get a short-lived token to follow a conversation live",
+          tags: ["Widget"],
+        }),
+      )
+      .errors({ NOT_FOUND: conversationErrors.NOT_FOUND })
+      .input(widgetRealtimeTokenInputSchema)
+      .output(widgetRealtimeTokenSchema),
+  },
+  realtime: {
+    getToken: oc
+      .meta(
+        openapi({
+          method: "POST",
+          path: "/realtime/token",
+          summary:
+            "Get a short-lived token to follow the inbox or a conversation live",
+          tags: ["Real time"],
+        }),
+      )
+      .errors({ NOT_FOUND: conversationErrors.NOT_FOUND })
+      .input(realtimeTokenInputSchema)
+      .output(realtimeTokenSchema),
   },
   inbox: {
     list: oc

@@ -1,0 +1,6 @@
+# Local secrets for `wrangler dev`. Fill with:
+#   pnpm env:secret REALTIME_TOKEN_SECRET --also apps/realtime/.dev.vars
+#   pnpm env:secret REALTIME_PUBLISH_SECRET --also apps/realtime/.dev.vars
+# The deployed Worker gets the same values with `wrangler secret bulk .dev.vars`.
+REALTIME_TOKEN_SECRET=
+REALTIME_PUBLISH_SECRET=

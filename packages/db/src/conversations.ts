@@ -133,7 +133,7 @@ async function addVisitorMessageOnce({
       .first();
 
     if (open) {
-      await tx.orm.public.Message.create({
+      const message = await tx.orm.public.Message.select("id").create({
         conversationId: open.id,
         workspaceId,
         author: "visitor",
@@ -143,7 +143,7 @@ async function addVisitorMessageOnce({
       await tx.orm.public.Conversation.where({ id: open.id, workspaceId })
         .select("id")
         .update({ lastMessageAt: now, lastVisitorMessageAt: now });
-      return open.id;
+      return { conversationId: open.id, messageId: message.id };
     }
 
     // A new conversation opens with the greeting (PRD W-4). While the agent is
@@ -166,7 +166,7 @@ async function addVisitorMessageOnce({
       body: greeting,
       createdAt: now,
     });
-    await tx.orm.public.Message.create({
+    const message = await tx.orm.public.Message.select("id").create({
       conversationId: conversation.id,
       workspaceId,
       author: "visitor",
@@ -182,7 +182,7 @@ async function addVisitorMessageOnce({
         createdAt: lastAt,
       });
     }
-    return conversation.id;
+    return { conversationId: conversation.id, messageId: message.id };
   });
 }
 
@@ -199,6 +199,33 @@ export async function addVisitorMessage(
     }
     throw error;
   }
+}
+
+/** The visitor's conversation with that id, or their latest one. */
+export async function findVisitorConversationId(
+  workspaceId: string,
+  visitorId: string,
+  conversationId: string | null,
+) {
+  const row = conversationId
+    ? await db.orm.public.Conversation.select("id")
+        .where({ id: conversationId, workspaceId, visitorId })
+        .first()
+    : await db.orm.public.Conversation.select("id")
+        .where({ workspaceId, visitorId })
+        .orderBy((conversation) => conversation.createdAt.desc())
+        .first();
+  return row?.id ?? null;
+}
+
+export async function conversationExists(
+  workspaceId: string,
+  conversationId: string,
+) {
+  const row = await db.orm.public.Conversation.select("id")
+    .where({ id: conversationId, workspaceId })
+    .first();
+  return Boolean(row);
 }
 
 export type TransitionResult =

@@ -6,6 +6,7 @@ import {
 import { os, sessionProcedure } from "@/server/orpc/base";
 import { inbox } from "@/server/orpc/inbox";
 import { knowledge } from "@/server/orpc/knowledge";
+import { realtime } from "@/server/orpc/realtime";
 import { widget } from "@/server/orpc/widget";
 import { widgetSettings } from "@/server/orpc/widget-settings";
 
@@ -30,6 +31,7 @@ export const router = os.router({
   widgetSettings,
   knowledge,
   widget,
+  realtime,
   inbox,
 });
 

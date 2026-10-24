@@ -16,6 +16,7 @@ export default defineConfig([
     "**/.next/**",
     "**/out/**",
     "**/build/**",
+    "**/.wrangler/**",
     "**/next-env.d.ts",
     "packages/db/src/prisma/contract.d.ts",
     "packages/db/src/prisma/contract.json",

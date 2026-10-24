@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./realtime": "./src/realtime.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
@@ -13,6 +14,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@orpc/client": "2.0.0-beta.40",
     "@orpc/contract": "2.0.0-beta.40",
     "@orpc/openapi": "2.0.0-beta.40",
     "zod": "^4.6.7"

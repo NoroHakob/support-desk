@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 
 import { isNavItemActive, navItems } from "@/components/dashboard/nav-items";
+import { NotificationsButton } from "@/components/dashboard/notifications-button";
 import { ThemeToggle } from "@/components/dashboard/theme-toggle";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -21,7 +22,8 @@ export function SiteHeader() {
           className="mx-2 h-4 data-vertical:self-auto"
         />
         <span className="text-base font-medium">{title}</span>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-1">
+          <NotificationsButton />
           <ThemeToggle />
         </div>
       </div>

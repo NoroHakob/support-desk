@@ -1,6 +1,6 @@
 "use client";
 
-import type { Conversation, ConversationSummary } from "@marshaldesk/shared";
+import { summarizeConversation, type Conversation } from "@marshaldesk/shared";
 import { ORPCError } from "@orpc/client";
 import {
   useMutation,
@@ -18,14 +18,6 @@ export type InboxActions = {
   handBack: (id: string) => void;
   close: (id: string) => void;
 };
-
-function toSummary({ messages, ...conversation }: Conversation) {
-  return {
-    ...conversation,
-    lastMessage:
-      messages.findLast((message) => message.author !== "system") ?? null,
-  } satisfies ConversationSummary;
-}
 
 function errorMessage(error: unknown) {
   return error instanceof ORPCError &&
@@ -58,7 +50,9 @@ export function useInbox(openId: string | null) {
     );
     queryClient.setQueryData(listKey, (list) =>
       list?.map((item) =>
-        item.id === conversation.id ? toSummary(conversation) : item,
+        item.id === conversation.id
+          ? summarizeConversation(conversation)
+          : item,
       ),
     );
   }

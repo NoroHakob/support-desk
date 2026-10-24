@@ -129,6 +129,18 @@ export const conversationSummarySchema = conversationSchema
   .omit({ messages: true })
   .extend({ lastMessage: messageSchema.nullable() });
 
+/** The inbox row for a conversation: its newest message that isn't a notice. */
+export function summarizeConversation({
+  messages,
+  ...conversation
+}: Conversation): ConversationSummary {
+  return {
+    ...conversation,
+    lastMessage:
+      messages.findLast((message) => message.author !== "system") ?? null,
+  };
+}
+
 export const replyInputSchema = z.object({
   body: z
     .string()

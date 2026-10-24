@@ -4,6 +4,7 @@ import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferenceHandlerPlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
 import { ZodToJsonSchemaConverter } from "@orpc/zod";
+import { after } from "next/server";
 
 import { router } from "@/server/orpc/router";
 
@@ -30,7 +31,7 @@ const handler = new OpenAPIHandler(router, {
 async function handleRequest(request: Request) {
   const { response } = await handler.handle(request, {
     prefix: "/api",
-    context: { headers: request.headers },
+    context: { headers: request.headers, after },
   });
   return response ?? new Response("Not found", { status: 404 });
 }

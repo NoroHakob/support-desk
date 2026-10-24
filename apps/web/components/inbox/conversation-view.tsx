@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { IconButton } from "@/components/dashboard/icon-button";
 import { MessageItem } from "@/components/inbox/message-item";
 import { StateBadge } from "@/components/inbox/state-badge";
+import { useConversationRoom } from "@/components/inbox/use-conversation-room";
 import { VisitorAvatar } from "@/components/inbox/visitor-avatar";
 import type { InboxActions } from "@/components/inbox/use-inbox";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/input-group";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { TypingDots } from "@/components/typing-dots";
 import { handoffReasonText } from "@/lib/conversation-copy";
 import { formatAgo } from "@/lib/format";
 import { visitorTitle } from "@/lib/visitor";
@@ -44,10 +46,14 @@ export function ConversationView({
 }) {
   const endRef = useRef<HTMLDivElement>(null);
   const messageCount = conversation.messages.length;
+  const { visitorTyping, onTypingInput, stopTyping } = useConversationRoom(
+    conversation.id,
+  );
+  const showTyping = visitorTyping && conversation.state !== "closed";
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
-  }, [conversation.id, messageCount]);
+  }, [conversation.id, messageCount, showTyping]);
 
   return (
     <div className="@container/conversation flex h-full flex-col">
@@ -93,6 +99,12 @@ export function ConversationView({
               handoffReason={conversation.handoffReason}
             />
           ))}
+          {showTyping ? (
+            <p className="flex animate-fade-in items-center gap-2 px-1 text-xs text-muted-foreground motion-reduce:animate-none">
+              <TypingDots />
+              The visitor is typing…
+            </p>
+          ) : null}
           <div ref={endRef} />
         </div>
       </ScrollArea>
@@ -101,7 +113,11 @@ export function ConversationView({
         key={conversation.id}
         conversation={conversation}
         busy={busy}
-        onSend={(body) => actions.reply(conversation.id, body)}
+        onSend={(body) => {
+          stopTyping();
+          return actions.reply(conversation.id, body);
+        }}
+        onTyping={onTypingInput}
       />
     </div>
   );
@@ -220,10 +236,12 @@ function Composer({
   conversation,
   busy,
   onSend,
+  onTyping,
 }: {
   conversation: Conversation;
   busy: boolean;
   onSend: (body: string) => Promise<unknown>;
+  onTyping: () => void;
 }) {
   const [draft, setDraft] = useState("");
   const valid = replyInputSchema.safeParse({ body: draft }).success;
@@ -262,7 +280,10 @@ function Composer({
           maxLength={MESSAGE_MAX_LENGTH}
           placeholder={composerPlaceholder(conversation)}
           value={draft}
-          onChange={(event) => setDraft(event.target.value)}
+          onChange={(event) => {
+            setDraft(event.target.value);
+            onTyping();
+          }}
           onKeyDown={(event) => {
             if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
               event.preventDefault();

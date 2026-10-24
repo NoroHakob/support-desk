@@ -2,6 +2,7 @@
 
 import {
   assertNever,
+  conversationEventSchema,
   MESSAGE_MAX_LENGTH,
   visitorMessageInputSchema,
   widgetColorHex,
@@ -15,8 +16,12 @@ import { ArrowRight, SendHorizontal, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { MessageMarkdown } from "@/components/message-markdown";
+import { TypingDots } from "@/components/typing-dots";
 import { AgentAvatar } from "@/components/widget/widget-panel";
+import { useRealtimeRoom } from "@/hooks/use-realtime-room";
+import { useRemoteTyping, useTypingSender } from "@/hooks/use-typing";
 import { agentAvatarUri, memberAvatarUri } from "@/lib/avatar";
+import { playNotificationSound } from "@/lib/notification-sound";
 import {
   readStoredToken,
   setVisitorToken,
@@ -42,14 +47,19 @@ function isUnauthorized(error: unknown) {
   return error instanceof ORPCError && error.code === "UNAUTHORIZED";
 }
 
+// Every change adds a message, so a copy with fewer messages is an older one
+// that arrived late.
 function upsertConversation(
   current: WidgetConversation[] | undefined,
   conversation: WidgetConversation,
 ) {
   const list = current ?? [];
-  return list.some((item) => item.id === conversation.id)
-    ? list.map((item) => (item.id === conversation.id ? conversation : item))
-    : [...list, conversation];
+  const existing = list.find((item) => item.id === conversation.id);
+  if (!existing) return [...list, conversation];
+  if (existing.messages.length > conversation.messages.length) return list;
+  return list.map((item) =>
+    item.id === conversation.id ? conversation : item,
+  );
 }
 
 export function WidgetApp({
@@ -179,6 +189,58 @@ export function WidgetApp({
 
   const list = conversations.data ?? [];
   const latest = list.at(-1);
+
+  // The latest conversation's room: owner replies, state changes and typing.
+  const memberTyping = useRemoteTyping();
+  const { send: sendToRoom } = useRealtimeRoom({
+    party: "conversation",
+    room: latest?.id ?? null,
+    schema: conversationEventSchema,
+    getToken: async () =>
+      (
+        await withSession(() =>
+          widgetClient.widget.getRealtimeToken({ conversationId: latest?.id }),
+        )
+      ).token,
+    onEvent: (event) => {
+      switch (event.type) {
+        case "conversation.updated": {
+          const known = new Set(
+            queryClient
+              .getQueryData(conversationsKey)
+              ?.find((item) => item.id === event.conversation.id)
+              ?.messages.map((message) => message.id),
+          );
+          const ownerReplied = event.conversation.messages.some(
+            (message) => message.author === "member" && !known.has(message.id),
+          );
+          queryClient.setQueryData(conversationsKey, (current) =>
+            upsertConversation(current, event.conversation),
+          );
+          if (ownerReplied) {
+            memberTyping.update(false);
+            // PRD W-12: a chime when the visitor isn't looking.
+            if (document.visibilityState !== "visible") {
+              playNotificationSound();
+            }
+          }
+          break;
+        }
+        case "typing":
+          if (event.role === "member") memberTyping.update(event.typing);
+          break;
+        default:
+          return assertNever(event);
+      }
+    },
+    onSync: () =>
+      void queryClient.invalidateQueries({ queryKey: conversationsKey }),
+  });
+  const typing = useTypingSender((value) =>
+    sendToRoom({ type: "typing", typing: value }),
+  );
+  const showTyping =
+    memberTyping.typing && latest !== undefined && latest.state !== "closed";
   const pendingBody = send.isPending ? send.variables : null;
   const showGreeting = !latest || latest.state === "closed";
   const showSuggestions =
@@ -195,7 +257,7 @@ export function WidgetApp({
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
-  }, [messageCount, pendingBody]);
+  }, [messageCount, pendingBody, showTyping]);
 
   return (
     <div
@@ -263,6 +325,14 @@ export function WidgetApp({
               <MessageMarkdown body={pendingBody} />
             </VisitorBubble>
           ) : null}
+          {showTyping ? (
+            <div className="ml-8 flex">
+              <div className="rounded-xl rounded-bl-sm bg-muted px-3 py-3 text-muted-foreground">
+                <TypingDots />
+                <span className="sr-only">Someone from the team is typing</span>
+              </div>
+            </div>
+          ) : null}
           <div ref={endRef} />
         </div>
       </div>
@@ -286,7 +356,11 @@ export function WidgetApp({
         <Composer
           ref={composerRef}
           disabled={send.isPending}
-          onSend={(body) => send.mutate(body)}
+          onSend={(body) => {
+            typing.stop();
+            send.mutate(body);
+          }}
+          onTyping={typing.onInput}
         />
       </footer>
     </div>
@@ -297,10 +371,12 @@ function Composer({
   ref,
   disabled,
   onSend,
+  onTyping,
 }: {
   ref: React.Ref<HTMLTextAreaElement>;
   disabled: boolean;
   onSend: (body: string) => void;
+  onTyping: () => void;
 }) {
   const [draft, setDraft] = useState("");
   const valid = visitorMessageInputSchema.safeParse({ body: draft }).success;
@@ -327,7 +403,10 @@ function Composer({
         maxLength={MESSAGE_MAX_LENGTH}
         placeholder="Write a message…"
         value={draft}
-        onChange={(event) => setDraft(event.target.value)}
+        onChange={(event) => {
+          setDraft(event.target.value);
+          onTyping();
+        }}
         onKeyDown={(event) => {
           if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();

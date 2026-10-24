@@ -10,6 +10,7 @@ build/
 next-env.d.ts
 *.tsbuildinfo
 .vercel
+.wrangler/
 
 # env files: keep only the *.example templates
 .env*

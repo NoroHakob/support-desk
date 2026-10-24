@@ -3,6 +3,7 @@ export * from "./auth";
 export * from "./contract";
 export * from "./conversation";
 export * from "./conversation-state";
+export * from "./realtime";
 export * from "./source";
 export * from "./widget";
 export * from "./widget-chat";

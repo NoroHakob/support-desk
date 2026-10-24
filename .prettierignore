@@ -1,5 +1,6 @@
 pnpm-lock.yaml
 **/.next
+**/.wrangler
 **/next-env.d.ts
 packages/db/src/prisma/contract.d.ts
 packages/db/src/prisma/contract.json

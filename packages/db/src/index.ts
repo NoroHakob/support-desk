@@ -1,8 +1,10 @@
 export {
   addVisitorMessage,
   applyConversationAction,
+  conversationExists,
   findConversation,
   findOpenConversationId,
+  findVisitorConversationId,
   listInboxConversations,
   listVisitorConversations,
   markConversationRead,

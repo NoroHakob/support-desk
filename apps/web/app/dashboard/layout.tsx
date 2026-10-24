@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { DashboardAccentProvider } from "@/components/dashboard/accent-provider";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
+import { DashboardRealtime } from "@/components/dashboard/dashboard-realtime";
 import { SiteHeader } from "@/components/dashboard/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -45,6 +46,7 @@ export default async function DashboardLayout({
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <DashboardAccentProvider initialColor={widgetSettings.color}>
+        <DashboardRealtime workspaceId={workspace.id} />
         <TooltipProvider delay={400}>
           <SidebarProvider
             defaultOpen={sidebarOpen}

@@ -8,6 +8,7 @@ import { contract } from "@marshaldesk/shared";
 import { implement, ORPCError } from "@orpc/server";
 
 import { auth } from "@/lib/auth/server";
+import type { Defer } from "@/server/realtime/publish";
 import { displayName } from "@/lib/user";
 import { isAllowedHost } from "@/server/widget/hosts";
 import {
@@ -15,9 +16,13 @@ import {
   visitorSecretMatches,
 } from "@/server/widget/visitor-token";
 
-// The HTTP handlers pass the request headers; the in-process server client
-// (used for SSR prefetching) has none.
-export const os = implement(contract).$context<{ headers?: Headers }>();
+// The HTTP handlers pass the request headers and Next's `after()`; the
+// in-process server client (used for SSR prefetching) has neither. Importing
+// them here would pull `next/server` into client SSR and break the build.
+export const os = implement(contract).$context<{
+  headers?: Headers;
+  after?: Defer;
+}>();
 
 export const sessionProcedure = os.use(async ({ next }) => {
   const { data: session } = await auth.getSession();

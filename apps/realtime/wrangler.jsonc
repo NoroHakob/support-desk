@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "supportdesk-realtime-dev",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "observability": { "enabled": true },
+  "durable_objects": {
+    "bindings": [
+      { "name": "Conversation", "class_name": "Conversation" },
+      { "name": "Workspace", "class_name": "Workspace" },
+    ],
+  },
+  // SQLite-backed classes are the ones the Workers Free plan allows.
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["Conversation", "Workspace"] },
+  ],
+}

@@ -12,6 +12,11 @@ import {
   toConversationSummary,
 } from "@/server/conversation-dto";
 import { ownerProcedure } from "@/server/orpc/base";
+import {
+  publishConversation,
+  publishWorkspaceEvent,
+  type Defer,
+} from "@/server/realtime/publish";
 
 type ConversationErrors = {
   NOT_FOUND: () => Error;
@@ -31,6 +36,7 @@ function throwIfFailed(result: TransitionResult, errors: ConversationErrors) {
 }
 
 async function act({
+  after,
   workspaceId,
   memberId,
   conversationId,
@@ -38,6 +44,7 @@ async function act({
   body,
   errors,
 }: {
+  after?: Defer;
   workspaceId: string;
   memberId: string;
   conversationId: string;
@@ -58,6 +65,7 @@ async function act({
   if (!row) {
     throw errors.NOT_FOUND();
   }
+  publishConversation(after, workspaceId, row);
   return toConversation(row);
 }
 
@@ -130,6 +138,11 @@ export const inbox = {
       if (!row) {
         throw errors.NOT_FOUND();
       }
+      // Other open dashboard tabs clear their unread badge.
+      publishWorkspaceEvent(context.after, context.workspaceId, {
+        type: "conversation.read",
+        conversationId: input.id,
+      });
     },
   ),
 };

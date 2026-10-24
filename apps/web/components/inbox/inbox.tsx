@@ -25,6 +25,7 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { useDocumentVisible } from "@/hooks/use-document-visible";
 import { useElementWidth } from "@/hooks/use-element-width";
 import { visitorAvatarUri } from "@/lib/avatar";
 
@@ -75,10 +76,13 @@ export function Inbox() {
     [conversations, open],
   );
 
+  // A conversation counts as read only once the owner can see it, so the tab
+  // badge stays while they're elsewhere (PRD D-6).
+  const visible = useDocumentVisible();
   const openUnreadId = open?.unread ? open.id : null;
   useEffect(() => {
-    if (openUnreadId) markRead(openUnreadId);
-  }, [openUnreadId, markRead]);
+    if (openUnreadId && visible) markRead(openUnreadId);
+  }, [openUnreadId, visible, markRead]);
   const [containerRef, width] = useElementWidth<HTMLDivElement>();
   const showDetailsPanel = width === null || width >= DETAILS_PANEL_MIN_WIDTH;
   const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
@@ -114,6 +118,7 @@ export function Inbox() {
           <Card>
             {open ? (
               <ConversationView
+                key={open.id}
                 conversation={open}
                 avatarUrl={avatars[open.visitor.id]}
                 actions={actions}

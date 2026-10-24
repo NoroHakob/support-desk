@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "pnpm --filter @marshaldesk/web dev",
     "build": "pnpm --filter @marshaldesk/web build",
+    "realtime:dev": "pnpm --filter @marshaldesk/realtime run dev",
+    "realtime:deploy:dev": "pnpm --filter @marshaldesk/realtime run deploy:dev",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
     "format": "prettier --write .",
