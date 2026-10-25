@@ -2,13 +2,18 @@
 
 import { assertNever, conversationEventSchema } from "@marshaldesk/shared";
 
+import { useAgentDraft } from "@/hooks/use-agent-draft";
 import { useRealtimeRoom } from "@/hooks/use-realtime-room";
 import { useRemoteTyping, useTypingSender } from "@/hooks/use-typing";
 import { client } from "@/lib/orpc";
 
-/** Typing in both directions for the conversation the owner has open. */
+/**
+ * Typing in both directions for the conversation the owner has open, and the
+ * agent's reply while it streams.
+ */
 export function useConversationRoom(conversationId: string) {
   const visitorTyping = useRemoteTyping();
+  const agentDraft = useAgentDraft();
   const { send } = useRealtimeRoom({
     party: "conversation",
     room: conversationId,
@@ -28,6 +33,10 @@ export function useConversationRoom(conversationId: string) {
         // The workspace room already refreshes the open conversation.
         case "conversation.updated":
           break;
+        case "agent.chunk":
+        case "agent.done":
+          agentDraft.update(event);
+          break;
         default:
           return assertNever(event);
       }
@@ -40,6 +49,7 @@ export function useConversationRoom(conversationId: string) {
 
   return {
     visitorTyping: visitorTyping.typing,
+    agentDraft: agentDraft.draft,
     onTypingInput: typing.onInput,
     stopTyping: typing.stop,
   };

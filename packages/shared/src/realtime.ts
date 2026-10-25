@@ -49,6 +49,15 @@ export const conversationServerEventSchema = z.discriminatedUnion("type", [
     type: z.literal("conversation.updated"),
     conversation: widgetConversationSchema,
   }),
+  // The agent's reply so far, so a client joining mid-stream catches up.
+  z.object({
+    type: z.literal("agent.chunk"),
+    messageId: z.uuid(),
+    body: z.string(),
+  }),
+  // The stream ended: the reply was saved (and sent as an update first) or
+  // dropped.
+  z.object({ type: z.literal("agent.done"), messageId: z.uuid() }),
 ]);
 
 export const typingEventSchema = z.object({

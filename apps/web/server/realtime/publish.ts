@@ -21,13 +21,7 @@ export type Defer = (task: () => Promise<void>) => void;
 
 let warnedMissingConfig = false;
 
-// Runs after the response is sent.
-function publish(
-  defer: Defer | undefined,
-  party: RealtimeParty,
-  room: string,
-  body: string,
-) {
+async function send(party: RealtimeParty, room: string, body: string) {
   const baseUrl = process.env.REALTIME_URL;
   const secret = process.env.REALTIME_PUBLISH_SECRET;
   if (!baseUrl || !secret) {
@@ -39,9 +33,17 @@ function publish(
     }
     return;
   }
-  (defer ?? ((task) => void task()))(() =>
-    sendRealtimeEvent({ baseUrl, secret, party, room, body }),
-  );
+  await sendRealtimeEvent({ baseUrl, secret, party, room, body });
+}
+
+// Runs after the response is sent.
+function publish(
+  defer: Defer | undefined,
+  party: RealtimeParty,
+  room: string,
+  body: string,
+) {
+  (defer ?? ((task) => void task()))(() => send(party, room, body));
 }
 
 export function publishConversationEvent(
@@ -60,6 +62,20 @@ export function publishWorkspaceEvent(
   publish(defer, "workspace", workspaceId, encodeRealtimeEvent(event));
 }
 
+function conversationEvents(
+  row: ConversationRow,
+  visitorMessageId: string | null,
+): [ConversationServerEvent, WorkspaceEvent] {
+  return [
+    { type: "conversation.updated", conversation: toWidgetConversation(row) },
+    {
+      type: "conversation.updated",
+      conversation: summarizeConversation(toConversation(row)),
+      visitorMessageId,
+    },
+  ];
+}
+
 /** Tells the widget and the inbox that a saved conversation changed. */
 export function publishConversation(
   defer: Defer | undefined,
@@ -67,13 +83,37 @@ export function publishConversation(
   row: ConversationRow,
   visitorMessageId: string | null = null,
 ) {
-  publishConversationEvent(defer, row.id, {
-    type: "conversation.updated",
-    conversation: toWidgetConversation(row),
-  });
-  publishWorkspaceEvent(defer, workspaceId, {
-    type: "conversation.updated",
-    conversation: summarizeConversation(toConversation(row)),
+  const [conversationEvent, workspaceEvent] = conversationEvents(
+    row,
     visitorMessageId,
-  });
+  );
+  publishConversationEvent(defer, row.id, conversationEvent);
+  publishWorkspaceEvent(defer, workspaceId, workspaceEvent);
+}
+
+/**
+ * Sends a conversation event now and waits for it, for the agent, whose
+ * events must arrive in order.
+ */
+export async function sendConversationEvent(
+  conversationId: string,
+  event: ConversationServerEvent,
+) {
+  await send("conversation", conversationId, encodeRealtimeEvent(event));
+}
+
+/** `publishConversation`, waiting for both events to be sent. */
+export async function sendConversation(
+  workspaceId: string,
+  row: ConversationRow,
+  visitorMessageId: string | null = null,
+) {
+  const [conversationEvent, workspaceEvent] = conversationEvents(
+    row,
+    visitorMessageId,
+  );
+  await Promise.all([
+    sendConversationEvent(row.id, conversationEvent),
+    send("workspace", workspaceId, encodeRealtimeEvent(workspaceEvent)),
+  ]);
 }

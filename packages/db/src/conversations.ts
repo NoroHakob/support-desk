@@ -55,7 +55,22 @@ function withMessages(workspaceId: string) {
     message
       .select(...messageFields)
       .orderBy((item) => item.createdAt.asc())
-      .include("member", (member) => member.select("name", "imageUrl")),
+      .include("member", (member) => member.select("name", "imageUrl"))
+      .include("agentTurns", (turn) =>
+        turn
+          .select(
+            "id",
+            "replyMessageId",
+            "outcome",
+            "chunks",
+            "model",
+            "tokensIn",
+            "tokensOut",
+            "latencyMs",
+          )
+          .orderBy((item) => item.createdAt.desc())
+          .limit(1),
+      ),
   );
 }
 

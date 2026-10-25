@@ -4,6 +4,9 @@ import { after } from "next/server";
 
 import { router } from "@/server/orpc/router";
 
+// The agent streams its reply inside `after()` (TECH-STACK section 8).
+export const maxDuration = 300;
+
 const handler = new RPCHandler(router, {
   interceptors: [onError((error) => console.error(error))],
 });

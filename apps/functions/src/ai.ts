@@ -5,21 +5,12 @@ import {
   embeddingDocumentText,
   normalizeVector,
 } from "@marshaldesk/shared";
-import { APICallError, embedMany } from "ai";
+import { embedMany } from "ai";
 
-/** Whether Gemini turned a call down for quota or rate limits (HTTP 429). */
-export function isQuotaError(error: unknown) {
-  return APICallError.isInstance(error) && error.statusCode === 429;
-}
-
-/** Whether Gemini was temporarily overloaded (HTTP 503, "high demand"). */
-export function isOverloadError(error: unknown) {
-  return (
-    APICallError.isInstance(error) &&
-    error.statusCode !== 429 &&
-    (error.statusCode === 503 || /high demand/i.test(error.message))
-  );
-}
+export {
+  isOverloadError,
+  isQuotaError,
+} from "@marshaldesk/shared/gemini-errors";
 
 /** Embeds chunks one batch at a time, so the free tier's limits hold. */
 export async function embedChunks(title: string, chunks: string[]) {

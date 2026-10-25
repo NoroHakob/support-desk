@@ -1,8 +1,10 @@
 import type { findConversation, listInboxConversations } from "./conversations";
 import type {
+  AgentTurn,
   Conversation,
   ConversationSummary,
   Message,
+  MessageSource,
   Visitor,
   WidgetConversation,
   WidgetMessage,
@@ -13,8 +15,10 @@ type ConversationRow = NonNullable<
 >;
 type InboxRow = Awaited<ReturnType<typeof listInboxConversations>>[number];
 type VisitorRow = NonNullable<ConversationRow["visitor"]>;
-type MessageRow = Omit<ConversationRow["messages"][number], "member">;
 type MessageWithMemberRow = ConversationRow["messages"][number];
+type MessageRow = Omit<MessageWithMemberRow, "member" | "agentTurns"> &
+  Partial<Pick<MessageWithMemberRow, "agentTurns">>;
+type AgentTurnRow = MessageWithMemberRow["agentTurns"][number];
 
 const FALLBACK_MEMBER_NAME = "Support team";
 
@@ -42,19 +46,53 @@ function toVisitor(row: VisitorRow | null): Visitor {
   };
 }
 
-function toMessage(row: MessageRow): Message {
+function toAgentTurn(row: AgentTurnRow): AgentTurn {
+  return {
+    id: row.id,
+    outcome: row.outcome,
+    chunks: [...row.chunks],
+    model: row.model,
+    tokensIn: row.tokensIn,
+    tokensOut: row.tokensOut,
+    latencyMs: row.latencyMs,
+  };
+}
+
+// The sources each agent reply was answered from, by reply id.
+function replySources(rows: readonly MessageRow[]) {
+  const sources = new Map<string, MessageSource[]>();
+  for (const turn of rows.flatMap((row) => row.agentTurns ?? [])) {
+    if (!turn.replyMessageId || turn.outcome !== "answered") continue;
+    const used = new Map(
+      turn.chunks
+        .filter((chunk) => chunk.used)
+        .map((chunk) => [chunk.sourceId, chunk.sourceName]),
+    );
+    sources.set(
+      turn.replyMessageId,
+      [...used].map(([id, name]) => ({ id, name })),
+    );
+  }
+  return sources;
+}
+
+function toMessage(
+  row: MessageRow,
+  sources: ReadonlyMap<string, MessageSource[]> = new Map(),
+): Message {
+  const [turn] = row.agentTurns ?? [];
   return {
     id: row.id,
     author: row.author,
     memberId: row.memberId,
     body: row.body,
-    // Attachments, agent turns and cited sources arrive in later phases.
+    // Attachments arrive with AI-6.
     attachments: [],
     classification: row.classification,
     declined: row.declined,
     systemEvent: row.systemEvent,
-    agentTurn: null,
-    sources: [],
+    agentTurn: turn ? toAgentTurn(turn) : null,
+    sources: sources.get(row.id) ?? [],
     createdAt: row.createdAt,
   };
 }
@@ -70,6 +108,7 @@ function unread(row: {
 }
 
 export function toConversation(row: ConversationRow): Conversation {
+  const sources = replySources(row.messages);
   return {
     id: row.id,
     state: row.state,
@@ -79,7 +118,7 @@ export function toConversation(row: ConversationRow): Conversation {
     closedAt: row.closedAt,
     unread: unread(row),
     visitor: toVisitor(row.visitor),
-    messages: row.messages.map(toMessage),
+    messages: row.messages.map((message) => toMessage(message, sources)),
   };
 }
 

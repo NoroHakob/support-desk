@@ -91,6 +91,8 @@ export function outcomeText(outcome: AgentOutcome, usedSources: number) {
       return "Declined politely. Retrieval and the answer model were skipped.";
     case "handed_off":
       return "Handed the conversation to you.";
+    case "discarded":
+      return "Stopped before replying, because the conversation moved on.";
     default:
       return assertNever(outcome);
   }

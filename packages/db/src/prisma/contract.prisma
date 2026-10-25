@@ -225,6 +225,7 @@ model Message {
   classification Classification?
   declined       Boolean           @default(false)
   attachments    Jsonb             @default(json`[]`)
+  agentTurns     AgentTurn[]
   // Set by the app, not the database, so messages written in one transaction
   // keep their order.
   createdAt      TimestamptzJsDate @map("created_at")
@@ -232,4 +233,45 @@ model Message {
   @@index([conversationId, createdAt])
   @@index([workspaceId])
   @@map("messages")
+}
+
+enum AgentOutcome {
+  @@type("pg/text@1")
+  answered   = "answered"
+  replied    = "replied"
+  declined   = "declined"
+  handed_off = "handed_off"
+  discarded  = "discarded"
+}
+
+// A copy of what retrieval returned, so the log outlives deleted sources.
+type RetrievedChunk {
+  chunkId    Uuid
+  sourceId   Uuid
+  sourceName String
+  score      Float
+  used       Boolean
+}
+
+// One row per agent turn (PRD AI-11), on the visitor message it answered.
+model AgentTurn {
+  id             Uuid                     @id @onCreate(uuid())
+  workspaceId    Uuid                     @map("workspace_id")
+  workspace      Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  messageId      Uuid                     @map("message_id")
+  message        Message                  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  // The agent's reply, when the turn wrote one.
+  replyMessageId Uuid?                    @map("reply_message_id")
+  outcome        AgentOutcome
+  chunks         RetrievedChunk[]
+  model          String
+  tokensIn       Int                      @map("tokens_in")
+  tokensOut      Int                      @map("tokens_out")
+  latencyMs      Int                      @map("latency_ms")
+  error          String?
+  createdAt      temporal.CreatedAtJsDate @map("created_at")
+
+  @@index([messageId])
+  @@index([workspaceId])
+  @@map("agent_turns")
 }

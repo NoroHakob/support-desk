@@ -8,6 +8,9 @@ import { after } from "next/server";
 
 import { router } from "@/server/orpc/router";
 
+// The agent streams its reply inside `after()` (TECH-STACK section 8).
+export const maxDuration = 300;
+
 const generator = new OpenAPIGenerator({
   converters: [new ZodToJsonSchemaConverter()],
 });

@@ -44,6 +44,8 @@ export const agentOutcomeSchema = z.enum([
   "replied",
   "declined",
   "handed_off",
+  // The conversation moved on (a take-over or a newer message) mid-turn.
+  "discarded",
 ]);
 
 export const attachmentSchema = z.object({
@@ -157,6 +159,7 @@ export type SystemEvent = z.infer<typeof systemEventSchema>;
 export type AgentOutcome = z.infer<typeof agentOutcomeSchema>;
 export type RetrievedChunk = z.infer<typeof retrievedChunkSchema>;
 export type AgentTurn = z.infer<typeof agentTurnSchema>;
+export type MessageSource = z.infer<typeof messageSourceSchema>;
 export type Message = z.infer<typeof messageSchema>;
 export type VisitorDetails = z.infer<typeof visitorDetailsSchema>;
 export type Visitor = z.infer<typeof visitorSchema>;

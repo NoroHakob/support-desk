@@ -9,13 +9,25 @@ export const AGENT_MODELS = {
 } as const;
 
 export const THINKING_LEVELS = {
-  classifier: "minimal",
-  reply: "minimal",
-  answer: "minimal",
+  classifier: "low",
+  reply: "low",
+  answer: "low",
   suggestedQuestions: "medium",
 } as const;
 
 export const EMBEDDING_DIMENSIONS = 1024;
+
+// Retrieval and history (TECH-STACK section 8); tuned with PRD section 9.
+export const RETRIEVAL = {
+  topK: 5,
+  // The best chunk must reach this, or the question hands off.
+  minScore: 0.5,
+  // Once it does, other chunks at this score or more join it.
+  extraScore: 0.4,
+  historyMessages: 10,
+  // Follow-ups this short are also searched with the previous question.
+  followUpMaxWords: 6,
+} as const;
 
 // gemini-embedding-2 has no task types; Google recommends these prefixes for
 // retrieval instead (ai.google.dev/gemini-api/docs/embeddings).

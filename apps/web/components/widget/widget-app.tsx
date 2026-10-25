@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MessageMarkdown } from "@/components/message-markdown";
 import { TypingDots } from "@/components/typing-dots";
 import { AgentAvatar } from "@/components/widget/widget-panel";
+import { useAgentDraft } from "@/hooks/use-agent-draft";
 import { useRealtimeRoom } from "@/hooks/use-realtime-room";
 import { useRemoteTyping, useTypingSender } from "@/hooks/use-typing";
 import { agentAvatarUri, memberAvatarUri } from "@/lib/avatar";
@@ -192,6 +193,7 @@ export function WidgetApp({
 
   // The latest conversation's room: owner replies, state changes and typing.
   const memberTyping = useRemoteTyping();
+  const agentDraft = useAgentDraft();
   const { send: sendToRoom } = useRealtimeRoom({
     party: "conversation",
     room: latest?.id ?? null,
@@ -229,6 +231,10 @@ export function WidgetApp({
         case "typing":
           if (event.role === "member") memberTyping.update(event.typing);
           break;
+        case "agent.chunk":
+        case "agent.done":
+          agentDraft.update(event);
+          break;
         default:
           return assertNever(event);
       }
@@ -242,6 +248,20 @@ export function WidgetApp({
   const showTyping =
     memberTyping.typing && latest !== undefined && latest.state !== "closed";
   const pendingBody = send.isPending ? send.variables : null;
+  const draft =
+    agentDraft.draft &&
+    !latest?.messages.some(
+      (message) => message.id === agentDraft.draft?.messageId,
+    )
+      ? agentDraft.draft
+      : null;
+  // The agent is working on the visitor's newest message.
+  const agentThinking =
+    latest?.state === "ai" &&
+    latest.messages.findLast((message) => message.author !== "system")
+      ?.author === "visitor" &&
+    draft === null &&
+    pendingBody === null;
   const showGreeting = !latest || latest.state === "closed";
   const showSuggestions =
     config.agentOn &&
@@ -257,7 +277,7 @@ export function WidgetApp({
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
-  }, [messageCount, pendingBody, showTyping]);
+  }, [messageCount, pendingBody, showTyping, agentThinking, draft?.body]);
 
   return (
     <div
@@ -324,6 +344,19 @@ export function WidgetApp({
             <VisitorBubble pending>
               <MessageMarkdown body={pendingBody} />
             </VisitorBubble>
+          ) : null}
+          {draft ? (
+            <AgentBubble avatarUrl={agentAvatarUrl} name={config.agentName}>
+              <MessageMarkdown body={draft.body} />
+            </AgentBubble>
+          ) : null}
+          {agentThinking ? (
+            <div className="ml-8 flex">
+              <div className="rounded-xl rounded-bl-sm bg-muted px-3 py-3 text-muted-foreground">
+                <TypingDots />
+                <span className="sr-only">{config.agentName} is typing</span>
+              </div>
+            </div>
           ) : null}
           {showTyping ? (
             <div className="ml-8 flex">

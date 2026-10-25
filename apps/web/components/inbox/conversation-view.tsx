@@ -15,6 +15,7 @@ import { StateBadge } from "@/components/inbox/state-badge";
 import { useConversationRoom } from "@/components/inbox/use-conversation-room";
 import { VisitorAvatar } from "@/components/inbox/visitor-avatar";
 import type { InboxActions } from "@/components/inbox/use-inbox";
+import { MessageMarkdown } from "@/components/message-markdown";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -46,14 +47,20 @@ export function ConversationView({
 }) {
   const endRef = useRef<HTMLDivElement>(null);
   const messageCount = conversation.messages.length;
-  const { visitorTyping, onTypingInput, stopTyping } = useConversationRoom(
-    conversation.id,
-  );
+  const { visitorTyping, agentDraft, onTypingInput, stopTyping } =
+    useConversationRoom(conversation.id);
   const showTyping = visitorTyping && conversation.state !== "closed";
+  const draft =
+    agentDraft &&
+    !conversation.messages.some(
+      (message) => message.id === agentDraft.messageId,
+    )
+      ? agentDraft
+      : null;
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
-  }, [conversation.id, messageCount, showTyping]);
+  }, [conversation.id, messageCount, showTyping, draft?.body]);
 
   return (
     <div className="@container/conversation flex h-full flex-col">
@@ -99,6 +106,19 @@ export function ConversationView({
               handoffReason={conversation.handoffReason}
             />
           ))}
+          {draft ? (
+            <div className="flex flex-col items-end gap-1">
+              <div
+                aria-busy
+                className="max-w-[80%] rounded-xl border border-primary/45 bg-primary/8 px-3.5 py-2.5"
+              >
+                <MessageMarkdown body={draft.body} />
+              </div>
+              <span className="px-1 text-xs text-muted-foreground">
+                Agent is writing…
+              </span>
+            </div>
+          ) : null}
           {showTyping ? (
             <p className="flex animate-fade-in items-center gap-2 px-1 text-xs text-muted-foreground motion-reduce:animate-none">
               <TypingDots />

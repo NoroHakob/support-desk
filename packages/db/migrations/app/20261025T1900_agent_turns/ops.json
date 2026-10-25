@@ -1,0 +1,251 @@
+[
+  {
+    "id": "table.agent_turns",
+    "label": "Create table \"agent_turns\"",
+    "summary": "Creates table \"agent_turns\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "agent_turns"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"agent_turns\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"agent_turns\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"agent_turns\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"agent_turns\"",
+        "sql": "CREATE TABLE \"public\".\"agent_turns\" (\n  \"chunks\" jsonb NOT NULL,\n  \"created_at\" timestamptz NOT NULL,\n  \"error\" text,\n  \"id\" uuid NOT NULL,\n  \"latency_ms\" int4 NOT NULL,\n  \"message_id\" uuid NOT NULL,\n  \"model\" text NOT NULL,\n  \"outcome\" text NOT NULL,\n  \"reply_message_id\" uuid,\n  \"tokens_in\" int4 NOT NULL,\n  \"tokens_out\" int4 NOT NULL,\n  \"workspace_id\" uuid NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"agent_turns_outcome_check_b5ef7ad5\" CHECK (\"outcome\" IN ('answered', 'replied', 'declined', 'handed_off', 'discarded'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"agent_turns\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"agent_turns\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"agent_turns\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "index.agent_turns.agent_turns_message_id_idx_8a7ff1ba",
+    "label": "Create index \"agent_turns_message_id_idx_8a7ff1ba\" on \"agent_turns\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "agent_turns_message_id_idx_8a7ff1ba",
+        "table": "agent_turns"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"agent_turns_message_id_idx_8a7ff1ba\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"agent_turns_message_id_idx_8a7ff1ba\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"agent_turns_message_id_idx_8a7ff1ba\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"agent_turns_message_id_idx_8a7ff1ba\"",
+        "sql": "CREATE INDEX \"agent_turns_message_id_idx_8a7ff1ba\" ON \"public\".\"agent_turns\" (\"message_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"agent_turns_message_id_idx_8a7ff1ba\" exists on \"agent_turns\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"agent_turns_message_id_idx_8a7ff1ba\"",
+          "i",
+          "I",
+          "\"public\".\"agent_turns\"",
+          "btree",
+          "[\"message_id\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.agent_turns.agent_turns_workspace_id_idx_90a9f461",
+    "label": "Create index \"agent_turns_workspace_id_idx_90a9f461\" on \"agent_turns\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "agent_turns_workspace_id_idx_90a9f461",
+        "table": "agent_turns"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"agent_turns_workspace_id_idx_90a9f461\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"agent_turns_workspace_id_idx_90a9f461\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"agent_turns_workspace_id_idx_90a9f461\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"agent_turns_workspace_id_idx_90a9f461\"",
+        "sql": "CREATE INDEX \"agent_turns_workspace_id_idx_90a9f461\" ON \"public\".\"agent_turns\" (\"workspace_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"agent_turns_workspace_id_idx_90a9f461\" exists on \"agent_turns\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"agent_turns_workspace_id_idx_90a9f461\"",
+          "i",
+          "I",
+          "\"public\".\"agent_turns\"",
+          "btree",
+          "[\"workspace_id\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.agent_turns.agent_turns_workspace_id_fkey",
+    "label": "Add foreign key \"agent_turns_workspace_id_fkey\" on \"agent_turns\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "agent_turns_workspace_id_fkey",
+        "table": "agent_turns"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"agent_turns_workspace_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "agent_turns_workspace_id_fkey",
+          "public",
+          "\"public\".\"agent_turns\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"agent_turns_workspace_id_fkey\" on \"agent_turns\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"agent_turns_workspace_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"agent_turns\"\nADD CONSTRAINT \"agent_turns_workspace_id_fkey\"\nFOREIGN KEY (\"workspace_id\")\nREFERENCES \"public\".\"workspaces\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"agent_turns_workspace_id_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "agent_turns_workspace_id_fkey",
+          "public",
+          "\"public\".\"agent_turns\"",
+          "f",
+          "[\"workspace_id\"]",
+          "\"public\".\"workspaces\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.agent_turns.agent_turns_message_id_fkey",
+    "label": "Add foreign key \"agent_turns_message_id_fkey\" on \"agent_turns\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "agent_turns_message_id_fkey",
+        "table": "agent_turns"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"agent_turns_message_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "agent_turns_message_id_fkey",
+          "public",
+          "\"public\".\"agent_turns\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"agent_turns_message_id_fkey\" on \"agent_turns\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"agent_turns_message_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"agent_turns\"\nADD CONSTRAINT \"agent_turns_message_id_fkey\"\nFOREIGN KEY (\"message_id\")\nREFERENCES \"public\".\"messages\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"agent_turns_message_id_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "agent_turns_message_id_fkey",
+          "public",
+          "\"public\".\"agent_turns\"",
+          "f",
+          "[\"message_id\"]",
+          "\"public\".\"messages\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  }
+]

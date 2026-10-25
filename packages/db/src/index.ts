@@ -1,4 +1,11 @@
 export {
+  isAgentTurnCurrent,
+  loadAgentTurnContext,
+  saveAgentTurn,
+  searchChunks,
+  type AgentTurnLog,
+} from "./agent";
+export {
   addVisitorMessage,
   applyConversationAction,
   conversationExists,

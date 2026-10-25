@@ -4,6 +4,10 @@
   "target": "postgres",
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "roots": {
+    "agent_turns": {
+      "model": "AgentTurn",
+      "namespace": "public"
+    },
     "chunks": {
       "model": "Chunk",
       "namespace": "public"
@@ -37,6 +41,31 @@
     "namespaces": {
       "public": {
         "enum": {
+          "AgentOutcome": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "answered",
+                "value": "answered"
+              },
+              {
+                "name": "replied",
+                "value": "replied"
+              },
+              {
+                "name": "declined",
+                "value": "declined"
+              },
+              {
+                "name": "handed_off",
+                "value": "handed_off"
+              },
+              {
+                "name": "discarded",
+                "value": "discarded"
+              }
+            ]
+          },
           "Classification": {
             "codecId": "pg/text@1",
             "members": [
@@ -254,6 +283,179 @@
           }
         },
         "models": {
+          "AgentTurn": {
+            "fields": {
+              "chunks": {
+                "many": {
+                  "elementNullable": false
+                },
+                "nullable": false,
+                "type": {
+                  "kind": "valueObject",
+                  "name": "RetrievedChunk"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar"
+                }
+              },
+              "error": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "latencyMs": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "messageId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "model": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "outcome": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "AgentOutcome",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "replyMessageId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "tokensIn": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "tokensOut": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "workspaceId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "message": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "messageId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Message",
+                  "namespace": "public"
+                }
+              },
+              "workspace": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "workspaceId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Workspace",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "chunks": {
+                  "column": "chunks"
+                },
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "error": {
+                  "column": "error"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "latencyMs": {
+                  "column": "latency_ms"
+                },
+                "messageId": {
+                  "column": "message_id"
+                },
+                "model": {
+                  "column": "model"
+                },
+                "outcome": {
+                  "column": "outcome"
+                },
+                "replyMessageId": {
+                  "column": "reply_message_id"
+                },
+                "tokensIn": {
+                  "column": "tokens_in"
+                },
+                "tokensOut": {
+                  "column": "tokens_out"
+                },
+                "workspaceId": {
+                  "column": "workspace_id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "agent_turns"
+            }
+          },
           "Chunk": {
             "fields": {
               "content": {
@@ -745,6 +947,21 @@
               }
             },
             "relations": {
+              "agentTurns": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "messageId"
+                  ]
+                },
+                "to": {
+                  "model": "AgentTurn",
+                  "namespace": "public"
+                }
+              },
               "conversation": {
                 "cardinality": "N:1",
                 "nullable": false,
@@ -1367,6 +1584,47 @@
               "table": "workspaces"
             }
           }
+        },
+        "valueObjects": {
+          "RetrievedChunk": {
+            "fields": {
+              "chunkId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "score": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
+              "sourceId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "sourceName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "used": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -1376,6 +1634,149 @@
       "public": {
         "entries": {
           "table": {
+            "agent_turns": {
+              "checks": [
+                {
+                  "expression": "\"outcome\" IN ('answered', 'replied', 'declined', 'handed_off', 'discarded')",
+                  "name": "agent_turns_outcome_check_b5ef7ad5",
+                  "prefix": "agent_turns_outcome_check"
+                }
+              ],
+              "columns": {
+                "chunks": {
+                  "codecId": "pg/jsonb@1",
+                  "dataType": "pg/jsonb",
+                  "nullable": false
+                },
+                "created_at": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "error": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "latency_ms": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "message_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "model": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "outcome": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "AgentOutcome",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "reply_message_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": true
+                },
+                "tokens_in": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "tokens_out": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "workspace_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "agent_turns_workspace_id_idx_90a9f461"
+                  },
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "workspace_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "agent_turns"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "workspaces"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "agent_turns_message_id_idx_8a7ff1ba"
+                  },
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "message_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "agent_turns"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "messages"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "message_id"
+                  ],
+                  "name": "agent_turns_message_id_idx_8a7ff1ba",
+                  "prefix": "agent_turns_message_id_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "workspace_id"
+                  ],
+                  "name": "agent_turns_workspace_id_idx_90a9f461",
+                  "prefix": "agent_turns_workspace_id_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "chunks": {
               "columns": {
                 "content": {
@@ -2418,6 +2819,16 @@
             }
           },
           "valueSet": {
+            "AgentOutcome": {
+              "kind": "valueSet",
+              "values": [
+                "answered",
+                "replied",
+                "declined",
+                "handed_off",
+                "discarded"
+              ]
+            },
             "Classification": {
               "kind": "valueSet",
               "values": [
@@ -2519,12 +2930,34 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "97e9074f60bb84fbc33b85db810c79de6af4b75095e90422fef83dfe8af52a87"
+    "storageHash": "45f708051ae323fa5886e23b7504fbb4e7324125bd31db6325f672761046b8ec"
   },
   "execution": {
-    "executionHash": "385abfc9c8fef6cbd1156c9f16e5dd65283833b3d84ae8158335d248ee446227",
+    "executionHash": "8405ed36b5385ed07bc9ceed5007e840e655acdee0f666b968e4fbc49e24c3a1",
     "mutations": {
       "defaults": [
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "agent_turns",
+            "field": "created_at",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "agent_turns",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
         {
           "onCreate": {
             "id": "timestampNow",

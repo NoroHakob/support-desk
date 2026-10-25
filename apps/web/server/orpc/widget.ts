@@ -16,6 +16,7 @@ import {
 import { assertNever } from "@marshaldesk/shared";
 import { ORPCError } from "@orpc/server";
 
+import { runAgentTurn } from "@/server/agent/run-turn";
 import { os, visitorProcedure } from "@/server/orpc/base";
 import { publishConversation, type Defer } from "@/server/realtime/publish";
 import { signRealtimeToken } from "@/server/realtime/token";
@@ -33,7 +34,7 @@ import {
 
 const NEW_VISIT_AFTER_MS = 30 * 60 * 1000;
 
-// Loads what was just saved, publishes it, and returns the visitor's view.
+// Loads what was just saved and publishes it.
 async function loadAndPublish(
   after: Defer | undefined,
   workspaceId: string,
@@ -45,7 +46,7 @@ async function loadAndPublish(
     throw new ORPCError("NOT_FOUND");
   }
   publishConversation(after, workspaceId, row, visitorMessageId);
-  return toWidgetConversation(row);
+  return row;
 }
 
 export const widget = {
@@ -149,7 +150,8 @@ export const widget = {
     },
   ),
 
-  // No agent runs yet: a message in the `ai` state waits for the owner.
+  // The message is saved and returned right away; the agent answers it
+  // after the response, over the conversation's room (TECH-STACK section 8).
   sendMessage: visitorProcedure.widget.sendMessage.handler(
     async ({ context, input }) => {
       const { conversationId, messageId } = await addVisitorMessage({
@@ -160,12 +162,22 @@ export const widget = {
         agentOn: await hasKnowledge(context.workspaceId),
         now: new Date(),
       });
-      return loadAndPublish(
+      const row = await loadAndPublish(
         context.after,
         context.workspaceId,
         conversationId,
         messageId,
       );
+      if (row.state === "ai") {
+        const turn = runAgentTurn({
+          workspaceId: context.workspaceId,
+          conversationId,
+          messageId,
+          agentName: context.widgetSettings.agentName,
+        });
+        (context.after ?? ((task) => void task()))(() => turn);
+      }
+      return toWidgetConversation(row);
     },
   ),
 
@@ -196,11 +208,13 @@ export const widget = {
             return assertNever(result.reason);
         }
       }
-      return loadAndPublish(
-        context.after,
-        context.workspaceId,
-        conversationId,
-        null,
+      return toWidgetConversation(
+        await loadAndPublish(
+          context.after,
+          context.workspaceId,
+          conversationId,
+          null,
+        ),
       );
     },
   ),
