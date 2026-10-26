@@ -8,7 +8,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { AuthHeading } from "@/components/auth/auth-heading";
-import { authErrorMessage } from "@/components/auth/auth-error";
+import { authCall, authErrorMessage } from "@/components/auth/auth-error";
 import { CodeInput } from "@/components/auth/code-input";
 import { FormAlert } from "@/components/auth/form-alert";
 import { ResendCode } from "@/components/auth/resend-code";
@@ -24,10 +24,9 @@ import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth/client";
 
 async function sendSignInCode(email: string) {
-  const { error } = await authClient.emailOtp.sendVerificationOtp({
-    email,
-    type: "sign-in",
-  });
+  const { error } = await authCall(
+    authClient.emailOtp.sendVerificationOtp({ email, type: "sign-in" }),
+  );
   return error ? authErrorMessage(error) : null;
 }
 
@@ -114,7 +113,9 @@ function CodeStep({
 
   const onSubmit = handleSubmit(async ({ code }) => {
     setServerError(null);
-    const { error } = await authClient.signIn.emailOtp({ email, otp: code });
+    const { error } = await authCall(
+      authClient.signIn.emailOtp({ email, otp: code }),
+    );
     if (error) {
       setServerError(authErrorMessage(error));
       return;

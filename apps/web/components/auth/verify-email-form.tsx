@@ -8,7 +8,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { AuthHeading } from "@/components/auth/auth-heading";
-import { authErrorMessage } from "@/components/auth/auth-error";
+import { authCall, authErrorMessage } from "@/components/auth/auth-error";
 import { CodeInput } from "@/components/auth/code-input";
 import { FormAlert } from "@/components/auth/form-alert";
 import { ResendCode } from "@/components/auth/resend-code";
@@ -36,10 +36,9 @@ export function VerifyEmailForm({ email }: { email: string }) {
 
   const onSubmit = handleSubmit(async ({ code }) => {
     setServerError(null);
-    const { data, error } = await authClient.emailOtp.verifyEmail({
-      email,
-      otp: code,
-    });
+    const { data, error } = await authCall(
+      authClient.emailOtp.verifyEmail({ email, otp: code }),
+    );
     if (error) {
       setServerError(authErrorMessage(error));
       return;
@@ -53,10 +52,12 @@ export function VerifyEmailForm({ email }: { email: string }) {
   });
 
   async function resend() {
-    const { error } = await authClient.emailOtp.sendVerificationOtp({
-      email,
-      type: "email-verification",
-    });
+    const { error } = await authCall(
+      authClient.emailOtp.sendVerificationOtp({
+        email,
+        type: "email-verification",
+      }),
+    );
     return error ? authErrorMessage(error) : null;
   }
 

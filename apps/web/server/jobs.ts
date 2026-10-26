@@ -14,7 +14,10 @@ export function callJobs(
   path: "/ingest/text" | "/suggested-questions",
   body: Record<string, string>,
 ) {
-  const baseUrl = process.env.FUNCTIONS_URL;
+  // `neon env pull --service functions` writes the function's URL under its
+  // own name; FUNCTIONS_URL overrides it.
+  const baseUrl =
+    process.env.FUNCTIONS_URL || process.env.NEON_FUNCTION_JOBS_BASE_URL;
   const secret = process.env.FUNCTIONS_SECRET;
   if (!baseUrl || !secret) {
     if (!warnedMissingConfig) {

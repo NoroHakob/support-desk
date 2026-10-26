@@ -21,8 +21,12 @@ const s3 = new S3Client({
   responseChecksumValidation: "WHEN_REQUIRED",
 });
 
+// On Neon, public-read objects are served from the branch's S3 endpoint, so
+// STORAGE_PUBLIC_BASE_URL is only needed to point somewhere else.
 export function profileImageUrl(key: string) {
-  return `${requireEnv("STORAGE_PUBLIC_BASE_URL")}/${PROFILE_IMAGES_BUCKET}/${key}`;
+  const base =
+    process.env.STORAGE_PUBLIC_BASE_URL || requireEnv("AWS_ENDPOINT_URL_S3");
+  return `${base.replace(/\/+$/, "")}/${PROFILE_IMAGES_BUCKET}/${key}`;
 }
 
 export async function presignProfileImagePut({

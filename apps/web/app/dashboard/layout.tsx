@@ -8,6 +8,7 @@ import { DashboardRealtime } from "@/components/dashboard/dashboard-realtime";
 import { SiteHeader } from "@/components/dashboard/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { isApprovedOwner } from "@/lib/auth/owners";
 import { verifyEmailHref } from "@/lib/auth/routes";
 import { auth } from "@/lib/auth/server";
 import { memberAvatarUri } from "@/lib/avatar";
@@ -25,6 +26,9 @@ export default async function DashboardLayout({
     redirect("/auth/sign-in");
   }
   const { user } = session;
+  if (!isApprovedOwner(user.email)) {
+    redirect("/auth/not-approved");
+  }
   if (!user.emailVerified) {
     redirect(verifyEmailHref(user.email));
   }

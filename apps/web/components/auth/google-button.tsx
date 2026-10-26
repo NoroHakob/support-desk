@@ -3,9 +3,14 @@
 import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 
-import { authErrorMessage } from "@/components/auth/auth-error";
+import { authCall, authErrorMessage } from "@/components/auth/auth-error";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth/client";
+
+// Neon's shared Google keys only work in development, so production hides
+// the button until it has its own (docs/MY-CHANGES.md section 10).
+export const GOOGLE_SIGN_IN_ENABLED =
+  process.env.NEXT_PUBLIC_GOOGLE_SIGN_IN !== "false";
 
 export function GoogleButton({
   onError,
@@ -18,10 +23,12 @@ export function GoogleButton({
     setPending(true);
     // The callback must be a page covered by proxy.ts: the middleware swaps
     // Neon's OAuth verifier for the session cookie there.
-    const { error } = await authClient.signIn.social({
-      provider: "google",
-      callbackURL: `${window.location.origin}/dashboard`,
-    });
+    const { error } = await authCall(
+      authClient.signIn.social({
+        provider: "google",
+        callbackURL: `${window.location.origin}/dashboard`,
+      }),
+    );
     if (error) {
       setPending(false);
       onError(authErrorMessage(error));

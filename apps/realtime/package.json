@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy:dev": "wrangler deploy",
+    "deploy:prod": "wrangler deploy -c wrangler.production.jsonc",
+    "secrets:prod": "wrangler secret bulk .env.prod -c wrangler.production.jsonc",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -8,7 +8,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { AuthHeading } from "@/components/auth/auth-heading";
-import { authErrorMessage } from "@/components/auth/auth-error";
+import { authCall, authErrorMessage } from "@/components/auth/auth-error";
 import { FormAlert } from "@/components/auth/form-alert";
 import { SubmitButton } from "@/components/auth/submit-button";
 import {
@@ -36,7 +36,9 @@ export function ForgotPasswordForm() {
 
   const onSubmit = handleSubmit(async ({ email }) => {
     setServerError(null);
-    const { error } = await authClient.forgetPassword.emailOtp({ email });
+    const { error } = await authCall(
+      authClient.forgetPassword.emailOtp({ email }),
+    );
     if (error) {
       setServerError(authErrorMessage(error));
       return;

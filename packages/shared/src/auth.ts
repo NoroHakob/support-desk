@@ -4,6 +4,9 @@ export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 128;
 export const CODE_LENGTH = 6;
 
+export const OWNER_NOT_APPROVED_MESSAGE =
+  "SupportDesk is invite-only for now, and this email isn't on the list.";
+
 export const emailSchema = z
   .email("Enter a valid email address.")
   .trim()

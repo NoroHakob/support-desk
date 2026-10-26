@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "contract:emit": "prisma contract emit",
     "migration:plan": "prisma migration plan",
-    "migrate:dev": "prisma db migrate --advance-ref db"
+    "migrate:dev": "prisma db migrate --advance-ref db",
+    "migrate:show": "prisma db migrate --show",
+    "migrate:prod": "prisma db migrate --advance-ref production"
   },
   "dependencies": {
     "@marshaldesk/shared": "workspace:*",

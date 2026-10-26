@@ -1,7 +1,8 @@
 import { defineConfig } from "@neon/config/v1";
 
-// Deployed with `pnpm functions:deploy:dev`, which reads the env values below
-// from apps/web/.env.local (TECH-STACK section 9).
+// Deployed with `pnpm functions:deploy:dev` (env values from
+// apps/web/.env.local) or `pnpm functions:deploy:prod` (from apps/web/.env.prod)
+// (TECH-STACK section 9, docs/MY-CHANGES.md section 10).
 export default defineConfig({
   functions: {
     jobs: {
@@ -16,10 +17,12 @@ export default defineConfig({
       },
     },
   },
-  // Declared so Neon injects the AWS_* variables into the function. Source
-  // files live here, not in the `uploads` bucket inherited from production.
+  // knowledge-files is declared so Neon injects the AWS_* variables into the
+  // function; source files live there, not in the `uploads` bucket.
+  // profile-images holds agent avatars, served straight from their public URL.
   buckets: {
     "knowledge-files": { access: "private" },
+    "profile-images": { access: "public_read" },
   },
   triggers: {
     "source-uploaded": {

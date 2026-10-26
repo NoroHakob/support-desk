@@ -8,9 +8,12 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { AuthHeading } from "@/components/auth/auth-heading";
-import { authErrorMessage } from "@/components/auth/auth-error";
+import { authCall, authErrorMessage } from "@/components/auth/auth-error";
 import { FormAlert } from "@/components/auth/form-alert";
-import { GoogleButton } from "@/components/auth/google-button";
+import {
+  GOOGLE_SIGN_IN_ENABLED,
+  GoogleButton,
+} from "@/components/auth/google-button";
 import { PasswordInput } from "@/components/auth/password-input";
 import { SubmitButton } from "@/components/auth/submit-button";
 import {
@@ -39,15 +42,19 @@ export function SignUpForm() {
 
   const onSubmit = handleSubmit(async ({ name, email, password }) => {
     setServerError(null);
-    const { error } = await authClient.signUp.email({ name, email, password });
+    const { error } = await authCall(
+      authClient.signUp.email({ name, email, password }),
+    );
     if (error) {
       setServerError(authErrorMessage(error));
       return;
     }
-    await authClient.emailOtp.sendVerificationOtp({
-      email,
-      type: "email-verification",
-    });
+    await authCall(
+      authClient.emailOtp.sendVerificationOtp({
+        email,
+        type: "email-verification",
+      }),
+    );
     router.push(verifyEmailHref(email));
   });
 
@@ -56,7 +63,7 @@ export function SignUpForm() {
       <FieldGroup>
         <AuthHeading
           title="Create your account"
-          description="Set up SupportDesk in a few minutes."
+          description="SupportDesk is invite-only for now. Sign up with an approved email."
         />
         <Field data-invalid={!!errors.name}>
           <FieldLabel htmlFor="name">Name</FieldLabel>
@@ -98,9 +105,13 @@ export function SignUpForm() {
         <Field>
           <SubmitButton pending={isSubmitting}>Create account</SubmitButton>
         </Field>
-        <FieldSeparator>Or continue with</FieldSeparator>
+        {GOOGLE_SIGN_IN_ENABLED ? (
+          <FieldSeparator>Or continue with</FieldSeparator>
+        ) : null}
         <Field>
-          <GoogleButton onError={setServerError} />
+          {GOOGLE_SIGN_IN_ENABLED ? (
+            <GoogleButton onError={setServerError} />
+          ) : null}
           <FieldDescription className="text-center">
             Already have an account? <Link href="/auth/sign-in">Sign in</Link>
           </FieldDescription>

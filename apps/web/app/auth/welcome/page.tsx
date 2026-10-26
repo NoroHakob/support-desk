@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { WelcomeForm } from "@/components/auth/welcome-form";
+import { isApprovedOwner } from "@/lib/auth/owners";
 import { auth } from "@/lib/auth/server";
 import { verifyEmailHref } from "@/lib/auth/routes";
 import { client } from "@/lib/orpc";
@@ -14,6 +15,9 @@ export default async function WelcomePage() {
   const { data: session } = await auth.getSession();
   if (!session?.user) {
     redirect("/auth/sign-in");
+  }
+  if (!isApprovedOwner(session.user.email)) {
+    redirect("/auth/not-approved");
   }
   if (!session.user.emailVerified) {
     redirect(verifyEmailHref(session.user.email));

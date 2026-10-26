@@ -4,9 +4,10 @@ import {
   findWidgetSettings,
   updateMemberProfile,
 } from "@marshaldesk/db";
-import { contract } from "@marshaldesk/shared";
+import { contract, OWNER_NOT_APPROVED_MESSAGE } from "@marshaldesk/shared";
 import { implement, ORPCError } from "@orpc/server";
 
+import { isApprovedOwner } from "@/lib/auth/owners";
 import { auth } from "@/lib/auth/server";
 import type { Defer } from "@/server/realtime/publish";
 import { displayName } from "@/lib/user";
@@ -28,6 +29,9 @@ export const sessionProcedure = os.use(async ({ next }) => {
   const { data: session } = await auth.getSession();
   if (!session?.user) {
     throw new ORPCError("UNAUTHORIZED");
+  }
+  if (!isApprovedOwner(session.user.email)) {
+    throw new ORPCError("FORBIDDEN", { message: OWNER_NOT_APPROVED_MESSAGE });
   }
   if (!session.user.emailVerified) {
     throw new ORPCError("FORBIDDEN", { message: "Verify your email first." });

@@ -1,10 +1,15 @@
 // Lets the browser upload to the profile-images and knowledge-files buckets.
 //
 //   pnpm --filter @marshaldesk/web storage:cors [extra origins...]
+//   pnpm storage:cors:prod
 //
 // Allows NEXT_PUBLIC_APP_URL plus any origins passed as arguments. Idempotent:
 // it replaces each bucket's CORS rules, so run it once per branch's storage
-// and again whenever the app's origin changes.
+// and again whenever the app's origin changes. Reads apps/web/.env.local, or
+// ENV_FILE (relative to the repo root) such as apps/web/.env.prod.
+
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   PutBucketCorsCommand,
@@ -12,11 +17,14 @@ import {
   type CORSRule,
 } from "@aws-sdk/client-s3";
 
-process.loadEnvFile(new URL("../.env.local", import.meta.url));
+const envFile = process.env["ENV_FILE"] ?? "apps/web/.env.local";
+process.loadEnvFile(
+  resolve(fileURLToPath(new URL("../../../", import.meta.url)), envFile),
+);
 
 const appUrl = process.env["NEXT_PUBLIC_APP_URL"];
 if (!appUrl) {
-  throw new Error("Set NEXT_PUBLIC_APP_URL in apps/web/.env.local first.");
+  throw new Error(`Set NEXT_PUBLIC_APP_URL in ${envFile} first.`);
 }
 const origins = [
   ...new Set(

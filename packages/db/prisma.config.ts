@@ -5,10 +5,16 @@ import pgvector from "@prisma/orm-extension-pgvector/control";
 import { defineConfig as ormConfig } from "@prisma/orm-postgres/config";
 import { config } from "dotenv";
 
-// The monorepo keeps one env file in apps/web. Migrations use the direct
-// (unpooled) connection; the app runtime uses the pooled DATABASE_URL.
+// The monorepo keeps its env files in apps/web: .env.local for development,
+// or ENV_FILE (relative to the repo root) such as apps/web/.env.prod for
+// production. Migrations use the direct (unpooled) connection; the app
+// runtime uses the pooled DATABASE_URL.
 config({
-  path: resolve(import.meta.dirname, "../../apps/web/.env.local"),
+  path: resolve(
+    import.meta.dirname,
+    "../..",
+    process.env["ENV_FILE"] ?? "apps/web/.env.local",
+  ),
   quiet: true,
 });
 

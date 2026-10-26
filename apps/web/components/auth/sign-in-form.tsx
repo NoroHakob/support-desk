@@ -8,9 +8,16 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { AuthHeading } from "@/components/auth/auth-heading";
-import { authErrorMessage } from "@/components/auth/auth-error";
+import {
+  authCall,
+  authErrorMessage,
+  isEmailNotVerified,
+} from "@/components/auth/auth-error";
 import { FormAlert } from "@/components/auth/form-alert";
-import { GoogleButton } from "@/components/auth/google-button";
+import {
+  GOOGLE_SIGN_IN_ENABLED,
+  GoogleButton,
+} from "@/components/auth/google-button";
 import { PasswordInput } from "@/components/auth/password-input";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { Button } from "@/components/ui/button";
@@ -40,17 +47,21 @@ export function SignInForm({ notice }: { notice?: string }) {
 
   const onSubmit = handleSubmit(async ({ email, password }) => {
     setServerError(null);
-    const { error } = await authClient.signIn.email({ email, password });
+    const { error } = await authCall(
+      authClient.signIn.email({ email, password }),
+    );
     if (!error) {
       router.replace("/dashboard");
       router.refresh();
       return;
     }
-    if (error.code === "EMAIL_NOT_VERIFIED") {
-      await authClient.emailOtp.sendVerificationOtp({
-        email,
-        type: "email-verification",
-      });
+    if (isEmailNotVerified(error)) {
+      await authCall(
+        authClient.emailOtp.sendVerificationOtp({
+          email,
+          type: "email-verification",
+        }),
+      );
       router.push(verifyEmailHref(email));
       return;
     }
@@ -103,7 +114,9 @@ export function SignInForm({ notice }: { notice?: string }) {
         </Field>
         <FieldSeparator>Or continue with</FieldSeparator>
         <Field>
-          <GoogleButton onError={setServerError} />
+          {GOOGLE_SIGN_IN_ENABLED ? (
+            <GoogleButton onError={setServerError} />
+          ) : null}
           <Button
             variant="form-secondary"
             size="field"

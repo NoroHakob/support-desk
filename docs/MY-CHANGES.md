@@ -88,3 +88,48 @@ Found in the phase 7 review (Oct 26, 2026). Jan's docs stay as written; these po
 - **Images in messages**: Markdown images aren't rendered anywhere (`disallowedElements={["img"]}` in `message-markdown.tsx`), because visitors write Markdown too. Attachments (W-9) will need their own rendering.
 - **Failed uploads** (TECH-STACK section 10): when the browser's PUT fails, the dashboard calls `knowledge.failUpload`, which marks the source right away, with the same outcome as the 15-minute sweep.
 - **Agent outcomes** (PRD section 8 data model): `agent_turns.outcome` also has `discarded`, for a turn stopped because the conversation moved on. There's no `agent_enabled` column: the agent is on while the workspace has chunks.
+
+## 10. Production
+
+Planned Oct 26, 2026 (phase 8). Production is the Neon `production` branch, the Vercel project for `apps/web` (Root Directory `apps/web`, Node.js 24.x), and the Worker `supportdesk-realtime`.
+
+### Owner allowlist
+
+- Only emails in `OWNER_EMAILS` (server-only, comma-separated, case-insensitive) can sign up, create a workspace or open the dashboard. Visitors in the widget are unaffected. This narrows PRD section 3 ("anyone can sign up") for the live site.
+- Without `OWNER_EMAILS`, everyone is allowed outside production and nobody in production.
+- Checked in three places (`apps/web/lib/auth/owners.ts`):
+  - `/api/auth` rejects email sign-up and emailed codes (sign-in codes create accounts) for unapproved emails before Neon Auth sees them, so they get no account and no email.
+  - `sessionProcedure` rejects unapproved owners on every owner procedure.
+  - The dashboard and `/auth/welcome` send them to `/auth/not-approved`. Google sign-in can only be stopped here, because Neon creates the account first.
+
+### Google sign-in
+
+- Neon's shared Google keys are for development only. Production sets `NEXT_PUBLIC_GOOGLE_SIGN_IN=false`, which hides "Continue with Google", and the shared Google provider is removed from production's Neon Auth.
+- To bring it back: create Google OAuth credentials, enter them yourself in the Neon console for the production branch, then set the flag to `true` and redeploy (it's inlined at build time).
+
+### Env files
+
+- Production values live in git-ignored `apps/web/.env.prod` and `apps/realtime/.env.prod` (templates: `*.env.prod.example`). Next.js never loads `.env.prod`, so local dev and builds can't reach production.
+- Values are written with `pnpm env:secret` / `pnpm env:set --file ...` and `pnpm env:pull:prod`, never pasted into chat.
+- Vercel gets them from `apps/web/.env.prod` through the dashboard's "Import .env" (Production only). `NEXT_PUBLIC_*` values must be there before the build.
+- `STORAGE_PUBLIC_BASE_URL` defaults to `AWS_ENDPOINT_URL_S3`, and `FUNCTIONS_URL` to `NEON_FUNCTION_JOBS_BASE_URL` (both pulled by `env:pull:prod`).
+- `prisma.config.ts` and `storage-cors.ts` read `ENV_FILE` (relative to the repo root) instead of `apps/web/.env.local` when it's set. The `:prod` scripts set it through `scripts/with-env-file.mjs`, because pnpm runs scripts with cmd.exe on Windows.
+
+### Production commands (from the repo root)
+
+| Command                      | Does                                                                                                                           |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm realtime:deploy:prod`  | Deploys `supportdesk-realtime` (`apps/realtime/wrangler.production.jsonc`)                                                     |
+| `pnpm realtime:secrets:prod` | Uploads `apps/realtime/.env.prod` as the Worker's secrets                                                                      |
+| `pnpm functions:plan:prod`   | Dry run of `neon.ts` against production                                                                                        |
+| `pnpm functions:deploy:prod` | Applies `neon.ts` to production (buckets, `jobs`, triggers) with `--no-env-pull`, so it never overwrites the root `.env.local` |
+| `pnpm env:pull:prod`         | Writes production's Postgres, Auth, storage and function variables into `apps/web/.env.prod`                                   |
+| `pnpm db:migrate:show:prod`  | Read-only preview of the migrations production would get                                                                       |
+| `pnpm db:migrate:prod`       | Applies them and advances `migrations/app/refs/production.json` (development keeps `refs/db.json`)                             |
+| `pnpm storage:cors:prod`     | Sets CORS on production's buckets for `NEXT_PUBLIC_APP_URL`                                                                    |
+
+Each one runs only after Norayr says so (section 5). Production Neon Auth needs `require_email_verification: true`, `allow_localhost: false`, and the Vercel URL as a trusted domain.
+
+### Demo site
+
+`demo/` is a static page for a fictional store (Brightline) with the widget snippet, plus `knowledge-base.md` covering the PRD section 9 questions. It's deployed as a second Vercel project (Root Directory `demo`, preset Other), because production never allows `localhost`.

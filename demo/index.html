@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Brightline: the desk lamp that follows your day</title>
+    <meta
+      name="description"
+      content="A fictional store used to demo the SupportDesk chat widget."
+    />
+    <style>
+      :root {
+        --ink: #1c1917;
+        --muted: #57534e;
+        --line: #e7e5e4;
+        --paper: #fafaf9;
+        --accent: #b45309;
+        --accent-soft: #fef3c7;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        color: var(--ink);
+        background: var(--paper);
+        line-height: 1.6;
+      }
+      a {
+        color: inherit;
+      }
+      .wrap {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 0 16px;
+      }
+      header {
+        border-bottom: 1px solid var(--line);
+        background: #fff;
+      }
+      header .wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 64px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .brand-mark {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #fde68a, var(--accent));
+      }
+      nav {
+        display: flex;
+        gap: 20px;
+        font-size: 15px;
+      }
+      nav a {
+        text-decoration: none;
+        color: var(--muted);
+      }
+      nav a:hover {
+        color: var(--ink);
+      }
+      .hero {
+        padding: 72px 0 56px;
+        display: grid;
+        gap: 40px;
+        grid-template-columns: 1.1fr 0.9fr;
+        align-items: center;
+      }
+      h1 {
+        font-size: clamp(36px, 6vw, 56px);
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        margin: 0 0 16px;
+      }
+      .lead {
+        font-size: 18px;
+        color: var(--muted);
+        margin: 0 0 28px;
+        max-width: 34rem;
+      }
+      .button {
+        display: inline-block;
+        padding: 12px 20px;
+        border-radius: 10px;
+        background: var(--ink);
+        color: #fff;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .lamp {
+        aspect-ratio: 1;
+        border-radius: 24px;
+        background:
+          radial-gradient(
+            circle at 50% 30%,
+            #fffbeb 0,
+            #fde68a 22%,
+            transparent 48%
+          ),
+          linear-gradient(160deg, #292524, #44403c);
+        position: relative;
+        overflow: hidden;
+      }
+      .lamp::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: 12%;
+        width: 6px;
+        height: 46%;
+        background: #a8a29e;
+        transform: translateX(-50%);
+        border-radius: 3px;
+      }
+      section {
+        padding: 56px 0;
+        border-top: 1px solid var(--line);
+      }
+      h2 {
+        font-size: 28px;
+        letter-spacing: -0.02em;
+        margin: 0 0 24px;
+      }
+      .grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .card {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 20px;
+      }
+      .card h3 {
+        margin: 0 0 6px;
+        font-size: 17px;
+      }
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 15px;
+      }
+      .price {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 4px 0 8px;
+      }
+      .price small {
+        font-size: 15px;
+        font-weight: 400;
+        color: var(--muted);
+      }
+      .card.featured {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+      }
+      ul.plain {
+        padding-left: 18px;
+        margin: 12px 0 0;
+        color: var(--muted);
+        font-size: 15px;
+      }
+      footer {
+        padding: 32px 0 96px;
+        color: var(--muted);
+        font-size: 14px;
+        border-top: 1px solid var(--line);
+      }
+      @media (max-width: 760px) {
+        nav {
+          display: none;
+        }
+        .hero {
+          grid-template-columns: 1fr;
+          padding-top: 40px;
+        }
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <a class="brand" href="#">
+          <span class="brand-mark" aria-hidden="true"></span>
+          Brightline
+        </a>
+        <nav aria-label="Main">
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#shipping">Shipping</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="wrap hero">
+        <div>
+          <h1>The desk lamp that follows your day.</h1>
+          <p class="lead">
+            Brightline shifts from cool morning light to a warm evening glow on
+            its own. Set it up in the Brightline app and forget about it.
+          </p>
+          <a class="button" href="#pricing">See plans</a>
+        </div>
+        <div
+          class="lamp"
+          role="img"
+          aria-label="A Brightline lamp glowing"
+        ></div>
+      </div>
+
+      <section id="features">
+        <div class="wrap">
+          <h2>Why people keep it on their desk</h2>
+          <div class="grid">
+            <div class="card">
+              <h3>Daylight schedule</h3>
+              <p>Color and brightness follow the sun where you live.</p>
+            </div>
+            <div class="card">
+              <h3>Focus scenes</h3>
+              <p>One tap for reading, video calls or winding down.</p>
+            </div>
+            <div class="card">
+              <h3>Works offline</h3>
+              <p>Schedules run on the lamp, even when your Wi-Fi doesn't.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="pricing">
+        <div class="wrap">
+          <h2>App plans</h2>
+          <div class="grid">
+            <div class="card">
+              <h3>Free</h3>
+              <div class="price">$0</div>
+              <p>Everything you need for one lamp.</p>
+              <ul class="plain">
+                <li>Daylight schedule</li>
+                <li>Three focus scenes</li>
+              </ul>
+            </div>
+            <div class="card featured">
+              <h3>Pro</h3>
+              <div class="price">$4 <small>per month</small></div>
+              <p>For homes and offices with more than one lamp.</p>
+              <ul class="plain">
+                <li>Up to 10 lamps</li>
+                <li>Unlimited scenes</li>
+                <li>Sleep and wake routines</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>The lamp</h3>
+              <div class="price">$129</div>
+              <p>One-time purchase. Two-year warranty.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="shipping">
+        <div class="wrap">
+          <h2>Shipping and returns</h2>
+          <p class="lead">
+            We ship to the United States, Canada and the European Union. Not
+            happy? Send it back within 30 days. Have a question? Open the chat
+            in the corner.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        Brightline is a fictional store, made to demo the SupportDesk chat
+        widget.
+      </div>
+    </footer>
+
+    <!-- SupportDesk widget: replace this with the install snippet from the
+         production dashboard's home page, and add this site's domain to the
+         widget's allowed domains. -->
+    <script
+      src="https://supportdesk.vercel.app/embed.js"
+      data-workspace="WORKSPACE_ID"
+      async
+    ></script>
+  </body>
+</html>

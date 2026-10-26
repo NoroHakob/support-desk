@@ -8,7 +8,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { AuthHeading } from "@/components/auth/auth-heading";
-import { authErrorMessage } from "@/components/auth/auth-error";
+import { authCall, authErrorMessage } from "@/components/auth/auth-error";
 import { CodeInput } from "@/components/auth/code-input";
 import { FormAlert } from "@/components/auth/form-alert";
 import { PasswordInput } from "@/components/auth/password-input";
@@ -38,11 +38,9 @@ export function ResetPasswordForm({ email }: { email: string }) {
 
   const onSubmit = handleSubmit(async ({ code, password }) => {
     setServerError(null);
-    const { error } = await authClient.emailOtp.resetPassword({
-      email,
-      otp: code,
-      password,
-    });
+    const { error } = await authCall(
+      authClient.emailOtp.resetPassword({ email, otp: code, password }),
+    );
     if (error) {
       setServerError(authErrorMessage(error));
       return;
@@ -51,7 +49,9 @@ export function ResetPasswordForm({ email }: { email: string }) {
   });
 
   async function resend() {
-    const { error } = await authClient.forgetPassword.emailOtp({ email });
+    const { error } = await authCall(
+      authClient.forgetPassword.emailOtp({ email }),
+    );
     return error ? authErrorMessage(error) : null;
   }
 
