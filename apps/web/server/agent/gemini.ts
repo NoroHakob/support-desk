@@ -57,10 +57,10 @@ const classifierOutputSchema = z.object({
   reply: z.string().nullable(),
 });
 
-export function thinking(level: keyof typeof THINKING_LEVELS) {
+export function thinking(use: keyof typeof THINKING_LEVELS) {
   return {
     google: {
-      thinkingConfig: { thinkingLevel: THINKING_LEVELS[level] },
+      thinkingConfig: { thinkingLevel: THINKING_LEVELS[use] },
     } satisfies GoogleLanguageModelOptions,
   };
 }

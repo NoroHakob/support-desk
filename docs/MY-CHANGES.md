@@ -25,14 +25,15 @@ The Neon AI Gateway needs a paid plan, so it is **not used**. This replaces the 
 
   | Use                                      | Model                                                      |
   | ---------------------------------------- | ---------------------------------------------------------- |
-  | Classifier (`Output.object`)             | `gemini-3.8-flash`                                         |
-  | Off-topic refusals and small talk        | `gemini-3.8-flash`                                         |
-  | Answers (streamed, `cannot_answer` tool) | `gemini-3.8-flash`                                         |
-  | Suggested questions                      | `gemini-3.8-flash`                                         |
+  | Classifier (`Output.object`)             | `gemini-3.5-flash-lite`                                    |
+  | Off-topic refusals and small talk        | `gemini-3.5-flash-lite`                                    |
+  | Answers (streamed, `cannot_answer` tool) | `gemini-3.5-flash-lite`                                    |
+  | Suggested questions                      | `gemini-3.5-flash-lite`                                    |
   | Embeddings (chunks and queries)          | `gemini-embedding-2`, `outputDimensionality: 1024`, cosine |
 
+- Chat model (decided Oct 26, 2026): `gemini-3.5-flash-lite` (stable; supports thinking, structured outputs and function calling). Not `gemini-3.8-flash`: on the free tier it was constantly overloaded (503 "high demand", then timeouts) at all times of day, so every agent turn handed off. Not `gemini-2.5-flash`: it returns 404 "no longer available to new users" for new projects.
 - No Google Search grounding.
-- Reasoning effort: replace `providerOptions.openai.reasoningEffort` with the Google provider's thinking setting: the lowest level for the classifier, short replies and answers, a moderate level for suggested questions. Check the Google provider page on ai-sdk.dev for the exact option names; don't guess.
+- Reasoning effort: replace `providerOptions.openai.reasoningEffort` with the Google provider's thinking setting. Gemini 3 models take `providerOptions.google.thinkingConfig.thinkingLevel`: `"low"` for the classifier, short replies and answers, `"medium"` for suggested questions (`THINKING_LEVELS` in `packages/shared/src/agent.ts`). Never `"minimal"` (3.8 Flash rejected it with a 400), and never `thinkingBudget`, which is for Gemini 2.5. Check the Google provider page on ai-sdk.dev before changing models; don't guess.
 - Embeddings: keep `vector(1024)`. Drop the Qwen query instruction prefix. If the Google provider supports retrieval task types (query vs document), use them; otherwise embed both the same way. Check whether returned vectors are unit length; if not, normalize them before saving and before searching.
 - Embedding prefixes (decided Oct 25, 2026): `gemini-embedding-2` rejects `taskType`, so use Google's recommended retrieval prefixes instead: chunks are embedded as `title: <source name> | text: <chunk>` and questions as `task: search result | query: <question>` (`packages/shared/src/agent.ts`). Vectors are normalized to unit length either way.
 - Jan's note "No Gemini" in TECH-STACK section 8 is about the Neon provider only and does not apply here.
@@ -40,7 +41,7 @@ The Neon AI Gateway needs a paid plan, so it is **not used**. This replaces the 
 
 ## 4. Free-tier quota
 
-- `gemini-3.8-flash` on the free tier allows about **20 requests per day**, reset at midnight Pacific time. Embeddings have their own, larger quota.
+- Treat the free tier as about **20 chat requests per day** (`gemini-3.5-flash-lite`), reset at midnight Pacific time; check the current limit in Google AI Studio. Embeddings have their own, larger quota.
 - Never call Gemini in loops, scripts, or your own verification steps without asking. Don't test the agent yourself by sending messages; tell me which PRD section 9 checklist items to run, and I'll run them.
 - If Gemini returns a quota or rate-limit error (429) during an agent turn, don't crash and don't retry in a loop: hand off exactly like `cannot_answer` (reason `low_confidence`) and log the error.
 - Suggested-question regeneration costs one request per knowledge base change. Don't trigger it more often than the PRD requires.

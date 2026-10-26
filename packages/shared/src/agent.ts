@@ -1,13 +1,15 @@
 // Models and settings for every Gemini call (docs/MY-CHANGES.md section 3).
 
 export const AGENT_MODELS = {
-  classifier: "gemini-3.8-flash",
-  reply: "gemini-3.8-flash",
-  answer: "gemini-3.8-flash",
-  suggestedQuestions: "gemini-3.8-flash",
+  classifier: "gemini-3.5-flash-lite",
+  reply: "gemini-3.5-flash-lite",
+  answer: "gemini-3.5-flash-lite",
+  suggestedQuestions: "gemini-3.5-flash-lite",
   embedding: "gemini-embedding-2",
 } as const;
 
+// Gemini 3 models take a thinking level, not a budget. Never "minimal":
+// 3.8 Flash rejected it with a 400.
 export const THINKING_LEVELS = {
   classifier: "low",
   reply: "low",
