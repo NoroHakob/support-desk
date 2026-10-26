@@ -55,6 +55,7 @@ export async function withOverloadRetry<T>(
 const classifierOutputSchema = z.object({
   label: classificationSchema,
   reply: z.string().nullable(),
+  handoffReply: z.string().nullable(),
 });
 
 export function thinking(use: keyof typeof THINKING_LEVELS) {
@@ -95,7 +96,11 @@ export function describeError(error: unknown) {
   return (error instanceof Error ? error.message : String(error)).slice(0, 500);
 }
 
-/** Labels the message and, for small talk and off-topic, writes the reply. */
+/**
+ * Labels the message and, for small talk and off-topic, writes the reply. For
+ * support questions it also writes the line shown if the turn hands off, so
+ * that line is in the visitor's language without another call (PRD AI-7).
+ */
 export async function classify({
   agentName,
   history,
@@ -118,6 +123,8 @@ export async function classify({
   return {
     label: output.label,
     reply: output.reply?.trim().slice(0, REPLY_MAX_LENGTH) || null,
+    handoffReply:
+      output.handoffReply?.trim().slice(0, REPLY_MAX_LENGTH) || null,
     tokens: tokens(totalUsage),
   };
 }

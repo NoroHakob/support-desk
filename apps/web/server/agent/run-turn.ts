@@ -56,6 +56,8 @@ const FALLBACK_REPLY = {
     "Sorry, I can only help with questions about our products and services. Is there anything I can help you with?",
 } as const;
 
+// The fallback when the classifier didn't write a handoff line, such as when
+// it failed.
 function handoffText(reason: HandoffReason) {
   switch (reason) {
     case "no_relevant_knowledge":
@@ -196,6 +198,7 @@ async function runTurn({
   const question = message.body;
 
   let classification: Classification | null = null;
+  let handoffReply: string | null = null;
   let chunks: RetrievedChunk[] = [];
   let model: string = AGENT_MODELS.classifier;
   const usage = { in: 0, out: 0 };
@@ -246,7 +249,8 @@ async function runTurn({
   }
 
   function handOff(reason: HandoffReason, error: string | null) {
-    const body = handoffText(reason);
+    const fallback = handoffText(reason);
+    const body = fallback === null ? null : (handoffReply ?? fallback);
     return finish({
       outcome: "handed_off",
       reply: body ? { id: randomUUID(), body } : null,
@@ -281,6 +285,7 @@ async function runTurn({
     usage.out += result.tokens.out;
     label = result.label;
     shortReply = result.reply;
+    handoffReply = result.handoffReply;
     classification = label;
   } catch (error) {
     return failed(error);
