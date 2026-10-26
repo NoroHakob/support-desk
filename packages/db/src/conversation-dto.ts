@@ -1,13 +1,16 @@
 import type { findConversation, listInboxConversations } from "./conversations";
-import type {
-  AgentTurn,
-  Conversation,
-  ConversationSummary,
-  Message,
-  MessageSource,
-  Visitor,
-  WidgetConversation,
-  WidgetMessage,
+import {
+  summarizeConversation,
+  type AgentTurn,
+  type Conversation,
+  type ConversationServerEvent,
+  type ConversationSummary,
+  type Message,
+  type MessageSource,
+  type Visitor,
+  type WidgetConversation,
+  type WidgetMessage,
+  type WorkspaceEvent,
 } from "@marshaldesk/shared";
 
 type ConversationRow = NonNullable<
@@ -162,4 +165,23 @@ export function toWidgetConversation(row: ConversationRow): WidgetConversation {
     closedAt: row.closedAt,
     messages: row.messages.map(toWidgetMessage),
   };
+}
+
+/**
+ * What tells the widget (conversation room) and the inbox (workspace room)
+ * that a saved conversation changed. `visitorMessageId` is set when the
+ * change should notify the owner (PRD D-6).
+ */
+export function toConversationEvents(
+  row: ConversationRow,
+  visitorMessageId: string | null,
+): [ConversationServerEvent, WorkspaceEvent] {
+  return [
+    { type: "conversation.updated", conversation: toWidgetConversation(row) },
+    {
+      type: "conversation.updated",
+      conversation: summarizeConversation(toConversation(row)),
+      visitorMessageId,
+    },
+  ];
 }

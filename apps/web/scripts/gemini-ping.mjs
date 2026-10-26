@@ -10,6 +10,13 @@ import { google } from "@ai-sdk/google";
 import { APICallError, generateText, Output } from "ai";
 import * as z from "zod";
 
+// By path, because Node runs this file without a bundler: it strips the types
+// from agent.ts, but can't resolve the package entry's extensionless imports.
+import {
+  AGENT_MODELS,
+  THINKING_LEVELS,
+} from "../../../packages/shared/src/agent.ts";
+
 process.loadEnvFile(new URL("../.env.local", import.meta.url));
 
 const apiKey = process.env["GOOGLE_GENERATIVE_AI_API_KEY"];
@@ -17,7 +24,7 @@ if (!apiKey) {
   throw new Error("Set GOOGLE_GENERATIVE_AI_API_KEY in apps/web/.env.local.");
 }
 
-const MODEL = "gemini-3.5-flash-lite";
+const MODEL = AGENT_MODELS.classifier;
 const TIMEOUT_MS = 40_000;
 
 function status(error) {
@@ -48,10 +55,13 @@ async function ping(label, options) {
   }
 }
 
+console.log(`Model: ${MODEL}`);
 await ping("1. plain", {});
-await ping("2. Output.object + thinkingLevel low", {
+await ping(`2. Output.object + thinkingLevel ${THINKING_LEVELS.classifier}`, {
   output: Output.object({ schema: z.object({ reply: z.string() }) }),
   providerOptions: {
-    google: { thinkingConfig: { thinkingLevel: "low" } },
+    google: {
+      thinkingConfig: { thinkingLevel: THINKING_LEVELS.classifier },
+    },
   },
 });

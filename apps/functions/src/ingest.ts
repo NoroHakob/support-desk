@@ -9,7 +9,7 @@ import { SOURCE_FILE_MAX_BYTES } from "@marshaldesk/shared";
 
 import { embedChunks, isQuotaError } from "./ai";
 import { chunkText } from "./chunk";
-import { cleanText, fileText } from "./parse";
+import { cleanText, fileText, looksLikePdf } from "./parse";
 import { publishSource } from "./publish";
 import {
   deleteKnowledgeFile,
@@ -119,6 +119,13 @@ export async function ingestFile(objectKey: string) {
       throw new IngestError("Use a file up to 10 MB.");
     }
     const bytes = await readKnowledgeFile(objectKey);
+    // The type comes from the file name, so check the content too (PRD
+    // section 10).
+    if (extension === "pdf" && !looksLikePdf(bytes)) {
+      throw new IngestError(
+        "This file isn't a PDF. Check the file and try again.",
+      );
+    }
     try {
       return { text: await fileText(bytes, extension), etag: object.etag };
     } catch (error) {

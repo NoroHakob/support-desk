@@ -18,7 +18,10 @@ import {
   type MessageAuthor,
   type RetrievedChunk,
 } from "@marshaldesk/shared";
-import { isOverloadError } from "@marshaldesk/shared/gemini-errors";
+import {
+  isOverloadError,
+  withOverloadRetry,
+} from "@marshaldesk/shared/gemini-errors";
 import { streamText, tool } from "ai";
 import * as z from "zod";
 
@@ -32,7 +35,6 @@ import {
   thinking,
   throwIfSimulated429,
   tokens,
-  withOverloadRetry,
 } from "@/server/agent/gemini";
 import {
   answerInstructions,
@@ -141,7 +143,7 @@ async function retrieve(
       embedQueries(
         followUp ? [question, `${previous}\n${question}`] : [question],
       ),
-    onRetry,
+    { delayMs: OVERLOAD_RETRY_DELAY_MS, onRetry },
   );
   const results = await Promise.all(
     vectors.map((vector) => searchChunks(workspaceId, vector, RETRIEVAL.topK)),
@@ -153,8 +155,9 @@ async function retrieve(
 
 /**
  * Runs the agent on a saved visitor message (PRD Flow B, steps 3 to 7). Every
- * failure, a 429 included, hands off with `low_confidence` and is never
- * retried, so a used-up free tier costs no extra calls.
+ * failure, a 429 included, hands off with `low_confidence`. Only a temporary
+ * overload (503) is retried, once, so a used-up free tier costs no extra
+ * calls.
  */
 export async function runAgentTurn(turn: Turn) {
   const startedAt = Date.now();
@@ -209,7 +212,7 @@ async function runTurn({
     handoffReason,
     error,
   }: {
-    outcome: Exclude<AgentOutcome, "discarded">;
+    outcome: AgentOutcome;
     reply: { id: string; body: string } | null;
     handoffReason: HandoffReason | null;
     error: string | null;
@@ -279,7 +282,7 @@ async function runTurn({
   try {
     const result = await withOverloadRetry(
       () => classify({ agentName, history, question }),
-      retrying("classify"),
+      { delayMs: OVERLOAD_RETRY_DELAY_MS, onRetry: retrying("classify") },
     );
     usage.in += result.tokens.in;
     usage.out += result.tokens.out;
@@ -406,6 +409,7 @@ async function runTurn({
   }
 
   trace(messageId, "streaming the answer");
+  let failure: { error: unknown } | null = null;
   try {
     try {
       await streamAnswer();
@@ -420,19 +424,7 @@ async function runTurn({
       await streamAnswer();
     }
   } catch (error) {
-    clearInterval(guard);
-    await publisher.stop();
-    if (stale) {
-      await done();
-      return finish({
-        outcome: "answered",
-        reply: null,
-        handoffReason: null,
-        error: null,
-      });
-    }
-    await done();
-    return failed(error);
+    failure = { error };
   }
   clearInterval(guard);
   await publisher.stop();
@@ -440,11 +432,20 @@ async function runTurn({
   const body = text.trim();
   trace(
     messageId,
-    `answer finished: ${body.length} characters${cannotAnswer ? ", cannot_answer called" : ""}`,
+    `answer ended: ${body.length} characters${cannotAnswer ? ", cannot_answer called" : ""}${stale ? ", conversation moved on" : ""}`,
   );
-  if (cannotAnswer || !body) {
+  if (stale || failure || cannotAnswer || !body) {
+    // Clears the streamed text before anything else is saved and sent.
     await done();
-    return handOff("low_confidence", null);
+    if (stale) {
+      return finish({
+        outcome: "discarded",
+        reply: null,
+        handoffReason: null,
+        error: null,
+      });
+    }
+    return failure ? failed(failure.error) : handOff("low_confidence", null);
   }
   // Saved and sent as an update first, so the widget swaps the stream for
   // the saved message before `agent.done` clears it.

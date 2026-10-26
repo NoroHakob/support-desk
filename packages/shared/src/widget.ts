@@ -4,7 +4,6 @@ export const AGENT_NAME_MAX_LENGTH = 60;
 export const GREETING_MAX_LENGTH = 500;
 export const SUGGESTED_QUESTIONS_MAX = 4;
 export const AGENT_AVATAR_MAX_BYTES = 2 * 1024 * 1024;
-export const DEFAULT_GREETING = "Hi there! How can we help you today?";
 
 export function defaultAgentName(workspaceName: string) {
   return `${workspaceName} Agent`;
@@ -48,8 +47,6 @@ export const widgetColorHex = {
   orange: "#c2410c",
   green: "#15803d",
 } as const satisfies Record<WidgetColor, string>;
-
-export const DEFAULT_WIDGET_COLOR: WidgetColor = "blue";
 
 export const agentNameSchema = z
   .string()

@@ -20,6 +20,7 @@ export {
 } from "./conversations";
 export {
   toConversation,
+  toConversationEvents,
   toConversationSummary,
   toWidgetConversation,
 } from "./conversation-dto";
@@ -41,7 +42,6 @@ export {
   findSourceDetail,
   finishIngest,
   hasKnowledge,
-  hasPendingSources,
   listSources,
   listStuckSources,
   markSourceReady,

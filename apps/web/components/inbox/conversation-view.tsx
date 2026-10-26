@@ -152,6 +152,15 @@ export function ConversationView({
   );
 }
 
+// The agent is working on a reply while the visitor's message is the newest
+// one; its saved reply, handoff or notice comes after it.
+function agentIsReplying(conversation: Conversation) {
+  return (
+    conversation.messages.findLast((message) => message.author !== "system")
+      ?.author === "visitor"
+  );
+}
+
 function headerLine(conversation: Conversation) {
   switch (conversation.state) {
     case "waiting":
@@ -159,7 +168,9 @@ function headerLine(conversation: Conversation) {
         ? handoffReasonText(conversation.handoffReason)
         : "Waiting for you.";
     case "ai":
-      return `The agent is replying. Started ${formatAgo(conversation.createdAt)}.`;
+      return agentIsReplying(conversation)
+        ? `The agent is replying. Started ${formatAgo(conversation.createdAt)}.`
+        : `The agent is handling this conversation. Started ${formatAgo(conversation.createdAt)}.`;
     case "human":
       return `You're replying. Started ${formatAgo(conversation.createdAt)}.`;
     case "closed":

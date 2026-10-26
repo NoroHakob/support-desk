@@ -121,7 +121,7 @@ export async function findOpenConversationId(
 
 // Messages written together get timestamps a millisecond apart, so they keep
 // their order when sorted by `created_at`.
-function at(base: Date, offset: number) {
+export function at(base: Date, offset: number) {
   return new Date(base.getTime() + offset);
 }
 

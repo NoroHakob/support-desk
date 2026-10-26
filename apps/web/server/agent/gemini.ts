@@ -8,7 +8,6 @@ import {
   THINKING_LEVELS,
   type MessageAuthor,
 } from "@marshaldesk/shared";
-import { isOverloadError } from "@marshaldesk/shared/gemini-errors";
 import {
   APICallError,
   embedMany,
@@ -32,24 +31,6 @@ export const OVERLOAD_RETRY_DELAY_MS = 2_000;
 
 export function overloadDelay() {
   return new Promise((resolve) => setTimeout(resolve, OVERLOAD_RETRY_DELAY_MS));
-}
-
-/**
- * Runs a Gemini call and retries it once after a temporary overload (503,
- * "high demand"). Quota errors (429) and bad requests are never retried.
- */
-export async function withOverloadRetry<T>(
-  call: () => Promise<T>,
-  onRetry: (error: unknown) => void,
-) {
-  try {
-    return await call();
-  } catch (error) {
-    if (!isOverloadError(error)) throw error;
-    onRetry(error);
-    await overloadDelay();
-    return call();
-  }
 }
 
 const classifierOutputSchema = z.object({

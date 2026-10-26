@@ -1,13 +1,11 @@
 import {
   findConversation,
   findSource,
-  toConversation,
-  toWidgetConversation,
+  toConversationEvents,
 } from "@marshaldesk/db";
 import {
   encodeRealtimeEvent,
   sendRealtimeEvent,
-  summarizeConversation,
   type ConversationServerEvent,
   type RealtimeParty,
   type WorkspaceEvent,
@@ -64,15 +62,9 @@ export async function publishConversation(
 ) {
   const row = await findConversation(workspaceId, conversationId);
   if (!row) return;
+  const [conversationEvent, workspaceEvent] = toConversationEvents(row, null);
   await Promise.all([
-    publishConversationEvent(row.id, {
-      type: "conversation.updated",
-      conversation: toWidgetConversation(row),
-    }),
-    publishWorkspaceEvent(workspaceId, {
-      type: "conversation.updated",
-      conversation: summarizeConversation(toConversation(row)),
-      visitorMessageId: null,
-    }),
+    publishConversationEvent(row.id, conversationEvent),
+    publishWorkspaceEvent(workspaceId, workspaceEvent),
   ]);
 }

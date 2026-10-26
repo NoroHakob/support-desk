@@ -1,12 +1,7 @@
-import {
-  toConversation,
-  toWidgetConversation,
-  type findConversation,
-} from "@marshaldesk/db";
+import { toConversationEvents, type findConversation } from "@marshaldesk/db";
 import {
   encodeRealtimeEvent,
   sendRealtimeEvent,
-  summarizeConversation,
   type ConversationServerEvent,
   type RealtimeParty,
   type WorkspaceEvent,
@@ -62,20 +57,6 @@ export function publishWorkspaceEvent(
   publish(defer, "workspace", workspaceId, encodeRealtimeEvent(event));
 }
 
-function conversationEvents(
-  row: ConversationRow,
-  visitorMessageId: string | null,
-): [ConversationServerEvent, WorkspaceEvent] {
-  return [
-    { type: "conversation.updated", conversation: toWidgetConversation(row) },
-    {
-      type: "conversation.updated",
-      conversation: summarizeConversation(toConversation(row)),
-      visitorMessageId,
-    },
-  ];
-}
-
 /** Tells the widget and the inbox that a saved conversation changed. */
 export function publishConversation(
   defer: Defer | undefined,
@@ -83,7 +64,7 @@ export function publishConversation(
   row: ConversationRow,
   visitorMessageId: string | null = null,
 ) {
-  const [conversationEvent, workspaceEvent] = conversationEvents(
+  const [conversationEvent, workspaceEvent] = toConversationEvents(
     row,
     visitorMessageId,
   );
@@ -108,7 +89,7 @@ export async function sendConversation(
   row: ConversationRow,
   visitorMessageId: string | null = null,
 ) {
-  const [conversationEvent, workspaceEvent] = conversationEvents(
+  const [conversationEvent, workspaceEvent] = toConversationEvents(
     row,
     visitorMessageId,
   );

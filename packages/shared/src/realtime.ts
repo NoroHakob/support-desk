@@ -103,11 +103,9 @@ export const clientEventSchema = z.object({
 export type RealtimeParty = z.infer<typeof realtimePartySchema>;
 export type RealtimeRole = z.infer<typeof realtimeRoleSchema>;
 export type RealtimeTokenClaims = z.infer<typeof realtimeTokenClaimsSchema>;
-export type RealtimeTokenInput = z.infer<typeof realtimeTokenInputSchema>;
 export type ConversationServerEvent = z.infer<
   typeof conversationServerEventSchema
 >;
-export type TypingEvent = z.infer<typeof typingEventSchema>;
 export type ConversationEvent = z.infer<typeof conversationEventSchema>;
 export type WorkspaceEvent = z.infer<typeof workspaceEventSchema>;
 export type ClientEvent = z.infer<typeof clientEventSchema>;

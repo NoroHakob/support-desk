@@ -10,6 +10,8 @@ export default defineConfig([
   {
     settings: {
       next: { rootDir: "apps/web/" },
+      // React is installed in apps/web, not at the root, so "detect" fails.
+      react: { version: "19.3" },
     },
   },
   globalIgnores([

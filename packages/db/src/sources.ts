@@ -369,15 +369,6 @@ export async function markSourceReady(workspaceId: string, sourceId: string) {
     .update({ status: "ready", error: null });
 }
 
-/** Whether any source in the workspace is still waiting to be processed. */
-export async function hasPendingSources(workspaceId: string) {
-  const pending = await db.orm.public.Source.select("id")
-    .where({ workspaceId })
-    .where((source) => source.status.in(["uploaded", "processing"]))
-    .first();
-  return pending !== null;
-}
-
 /** Sources in every workspace that have been waiting since before `before`. */
 export async function listStuckSources(before: Date) {
   return db.orm.public.Source.select("id", "workspaceId", "kind", "status")

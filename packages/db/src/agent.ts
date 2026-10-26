@@ -5,6 +5,7 @@ import type {
   RetrievedChunk,
 } from "@marshaldesk/shared";
 
+import { at } from "./conversations";
 import { db } from "./prisma/db";
 
 /**
@@ -92,12 +93,6 @@ export async function searchChunks(
   }));
 }
 
-// Messages written together get timestamps a millisecond apart, so they keep
-// their order when sorted by `created_at`.
-function at(base: Date, offset: number) {
-  return new Date(base.getTime() + offset);
-}
-
 export type AgentTurnLog = {
   chunks: RetrievedChunk[];
   model: string;
@@ -110,8 +105,9 @@ export type AgentTurnLog = {
 /**
  * Saves the end of an agent turn under a row lock: the reply (with the id it
  * was streamed under), the handoff, and the `agent_turns` row. If the turn is
- * no longer current, only the classification and a `discarded` log are
- * saved. Returns whether the turn's writes went through.
+ * no longer current, or the caller passes `outcome: "discarded"`, only the
+ * classification and a `discarded` log are saved. Returns whether the turn's
+ * writes went through.
  */
 export async function saveAgentTurn({
   workspaceId,
@@ -130,7 +126,7 @@ export async function saveAgentTurn({
   messageId: string;
   messageCreatedAt: Date;
   classification: Classification | null;
-  outcome: Exclude<AgentOutcome, "discarded">;
+  outcome: AgentOutcome;
   reply: { id: string; body: string } | null;
   handoffReason: HandoffReason | null;
   log: AgentTurnLog;
@@ -145,6 +141,7 @@ export async function saveAgentTurn({
       .forNoKeyUpdate()
       .first();
     const current =
+      outcome !== "discarded" &&
       conversation?.state === "ai" &&
       conversation.lastMessageAt.getTime() === messageCreatedAt.getTime();
 

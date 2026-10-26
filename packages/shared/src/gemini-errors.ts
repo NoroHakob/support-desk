@@ -16,3 +16,22 @@ export function isOverloadError(error: unknown) {
     (error.statusCode === 503 || /high demand/i.test(error.message))
   );
 }
+
+/**
+ * Runs a Gemini call and retries it once after `delayMs` when Gemini was
+ * temporarily overloaded. Quota errors (429) and bad requests are never
+ * retried (docs/MY-CHANGES.md section 4).
+ */
+export async function withOverloadRetry<T>(
+  call: () => Promise<T>,
+  { delayMs, onRetry }: { delayMs: number; onRetry: (error: unknown) => void },
+) {
+  try {
+    return await call();
+  } catch (error) {
+    if (!isOverloadError(error)) throw error;
+    onRetry(error);
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    return call();
+  }
+}
