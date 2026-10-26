@@ -10,6 +10,7 @@ import { Bot, CircleX, Hand, PanelRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { IconButton } from "@/components/dashboard/icon-button";
+import { LiveUpdatesStopped } from "@/components/dashboard/live-updates-stopped";
 import { MessageItem } from "@/components/inbox/message-item";
 import { StateBadge } from "@/components/inbox/state-badge";
 import { useConversationRoom } from "@/components/inbox/use-conversation-room";
@@ -47,8 +48,13 @@ export function ConversationView({
 }) {
   const endRef = useRef<HTMLDivElement>(null);
   const messageCount = conversation.messages.length;
-  const { visitorTyping, agentDraft, onTypingInput, stopTyping } =
-    useConversationRoom(conversation.id);
+  const {
+    visitorTyping,
+    agentDraft,
+    onTypingInput,
+    stopTyping,
+    liveUpdatesStopped,
+  } = useConversationRoom(conversation.id);
   const showTyping = visitorTyping && conversation.state !== "closed";
   const draft =
     agentDraft &&
@@ -95,6 +101,9 @@ export function ConversationView({
         <p role="alert" className="border-b px-4 py-2 text-sm text-destructive">
           {error}
         </p>
+      ) : null}
+      {liveUpdatesStopped ? (
+        <LiveUpdatesStopped className="border-b px-4 py-2" />
       ) : null}
 
       <ScrollArea className="min-h-0 flex-1">

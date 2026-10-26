@@ -35,6 +35,7 @@ export {
   createTextSource,
   deleteSource,
   failIngest,
+  failUpload,
   findSource,
   findSourceByStorageKey,
   findSourceDetail,

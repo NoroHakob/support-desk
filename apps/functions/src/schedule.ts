@@ -5,6 +5,7 @@ import {
   listStuckSources,
   listWorkspacesNeedingQuestions,
 } from "@marshaldesk/db";
+import { UPLOAD_UNFINISHED_ERROR } from "@marshaldesk/shared";
 
 import { publishConversation, publishSource } from "./publish";
 import { regenerateSuggestedQuestions } from "./suggested-questions";
@@ -45,7 +46,7 @@ async function sweepStuckSources(now: Date) {
       revision: null,
       error:
         source.status === "uploaded" && source.kind === "file"
-          ? "The upload didn't finish. Try uploading the file again."
+          ? UPLOAD_UNFINISHED_ERROR
           : "Processing didn't finish. Try again.",
     });
     await publishSource(source.workspaceId, source.id);

@@ -27,6 +27,10 @@ export default async function WidgetPage({
     return null;
   }
   return (
-    <WidgetApp workspaceId={workspaceId} host={host.data} config={config} />
+    <WidgetApp
+      workspaceId={workspaceId}
+      host={host.data}
+      initialConfig={config}
+    />
   );
 }

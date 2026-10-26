@@ -70,3 +70,18 @@ The Neon AI Gateway needs a paid plan, so it is **not used**. This replaces the 
 ## 8. Observability
 
 - LangSmith is not used for now. Agent turns are logged in `agent_turns`, as Jan planned. Don't add LangSmith unless I ask.
+
+## 9. Where the code differs from Jan's docs
+
+Found in the phase 7 review (Oct 26, 2026). Jan's docs stay as written; these points win over them.
+
+- **Development hosts** (TECH-STACK section 6): the localhost rule lives in `apps/web/server/widget/hosts.ts`, not `lib/visitor/development-hosts.ts`.
+- **Dev Worker name** (TECH-STACK section 7): `supportdesk-realtime-dev`, not `marshaldesk-realtime-dev`. The internal header prefix stays `x-marshaldesk-`.
+- **Agent on or off in the widget** (TECH-STACK section 7): `knowledge.updated` carries only the suggested questions. The widget fetches `widget.config` again whenever it opens or its page becomes visible, so it picks up the agent turning on or off without a reload.
+- **Realtime token errors** (TECH-STACK section 7): if a token request fails with `BAD_REQUEST`, `UNAUTHORIZED`, `FORBIDDEN` or `NOT_FOUND`, the socket stops reconnecting, and the dashboard shows "Live updates stopped" with a Reload button. Other failures keep retrying.
+- **Vector search** (TECH-STACK sections 5, 8 and 15): `@prisma/orm-extension-pgvector` is 8.0.0-rc.20. There's no HNSW index and no materialized CTE: search filters by `workspace_id` and ranks by cosine distance, so only that workspace's chunks are scored. That's enough at showcase scale.
+- **Gemini overloads** (TECH-STACK section 8, section 4 here): a 503 or "high demand" error is retried once (after 2 s in the agent, before any answer text has streamed; after 5 s for suggested questions). 429s are never retried.
+- **Handoff line** (TECH-STACK section 8, PRD AI-7): for support questions, the classifier also writes `handoffReply`, one sentence in the visitor's language saying a person will take over. It's posted when the turn hands off with `no_relevant_knowledge` or `low_confidence`, in the same call. When it's missing (for example because the classifier failed), the fixed English text is used.
+- **Images in messages**: Markdown images aren't rendered anywhere (`disallowedElements={["img"]}` in `message-markdown.tsx`), because visitors write Markdown too. Attachments (W-9) will need their own rendering.
+- **Failed uploads** (TECH-STACK section 10): when the browser's PUT fails, the dashboard calls `knowledge.failUpload`, which marks the source right away, with the same outcome as the 15-minute sweep.
+- **Agent outcomes** (PRD section 8 data model): `agent_turns.outcome` also has `discarded`, for a turn stopped because the conversation moved on. There's no `agent_enabled` column: the agent is on while the workspace has chunks.

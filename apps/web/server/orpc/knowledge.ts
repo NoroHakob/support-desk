@@ -1,13 +1,14 @@
 import {
   createTextSource,
   deleteSource,
+  failUpload,
   findSource,
   findSourceDetail,
   listSources,
   saveFileSource,
   updateTextSource,
 } from "@marshaldesk/db";
-import { sourceFileType } from "@marshaldesk/shared";
+import { sourceFileType, UPLOAD_UNFINISHED_ERROR } from "@marshaldesk/shared";
 import { ORPCError } from "@orpc/server";
 
 import { callJobs } from "@/server/jobs";
@@ -74,6 +75,15 @@ export const knowledge = {
         id,
       );
       return { source, ...upload };
+    },
+  ),
+
+  // Without this the source would look like it's waiting for its file until
+  // the 15-minute sweep.
+  failUpload: ownerProcedure.knowledge.failUpload.handler(
+    async ({ context, input }) => {
+      await failUpload(context.workspaceId, input.id, UPLOAD_UNFINISHED_ERROR);
+      return loadAndPublish(context.after, context.workspaceId, input.id);
     },
   ),
 

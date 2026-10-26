@@ -3,6 +3,8 @@ import * as z from "zod";
 export const SOURCE_FILE_MAX_BYTES = 10 * 1024 * 1024;
 export const SOURCE_NAME_MAX_LENGTH = 200;
 export const TEXT_SOURCE_MAX_LENGTH = 50_000;
+export const UPLOAD_UNFINISHED_ERROR =
+  "The upload didn't finish. Try uploading the file again.";
 
 export const sourceFileTypes = [
   { extension: "pdf", mime: "application/pdf" },

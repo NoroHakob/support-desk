@@ -66,12 +66,22 @@ function upsertConversation(
 export function WidgetApp({
   workspaceId,
   host,
-  config,
+  initialConfig,
 }: {
   workspaceId: string;
   host: string;
-  config: WidgetConfig;
+  initialConfig: WidgetConfig;
 }) {
+  // Fetched again whenever the widget opens or the page comes back, so the
+  // agent turning on or off (sources added or deleted) shows without a reload.
+  const { data: config, refetch: refetchConfig } = useQuery({
+    ...widgetOrpc.widget.config.queryOptions({
+      input: { workspaceId, host },
+    }),
+    initialData: initialConfig,
+    staleTime: Number.POSITIVE_INFINITY,
+    refetchOnWindowFocus: "always",
+  });
   const accentHex = widgetColorHex[config.color];
   const agentAvatarUrl = useMemo(
     () => config.agentAvatarUrl ?? agentAvatarUri(workspaceId, accentHex),
@@ -125,6 +135,7 @@ export function WidgetApp({
           break;
         case "supportdesk:open":
           void startSession(false);
+          void refetchConfig();
           composerRef.current?.focus();
           break;
         default:
@@ -141,7 +152,7 @@ export function WidgetApp({
       void startSession(false);
     }
     return () => window.removeEventListener("message", onMessage);
-  }, [workspaceId, config.position, accentHex, startSession]);
+  }, [workspaceId, config.position, accentHex, startSession, refetchConfig]);
 
   const conversations = useQuery({
     ...widgetOrpc.widget.conversations.queryOptions(),
@@ -391,7 +402,7 @@ export function WidgetApp({
           disabled={send.isPending}
           onSend={(body) => {
             typing.stop();
-            send.mutate(body);
+            return send.mutateAsync(body);
           }}
           onTyping={typing.onInput}
         />
@@ -408,7 +419,7 @@ function Composer({
 }: {
   ref: React.Ref<HTMLTextAreaElement>;
   disabled: boolean;
-  onSend: (body: string) => void;
+  onSend: (body: string) => Promise<unknown>;
   onTyping: () => void;
 }) {
   const [draft, setDraft] = useState("");
@@ -417,8 +428,12 @@ function Composer({
   function submit() {
     const parsed = visitorMessageInputSchema.safeParse({ body: draft });
     if (!parsed.success || disabled) return;
-    onSend(parsed.data.body);
+    // Cleared right away because the pending bubble shows the message; it
+    // comes back if sending fails, unless the visitor has started a new one.
     setDraft("");
+    onSend(parsed.data.body).catch(() =>
+      setDraft((current) => (current === "" ? draft : current)),
+    );
   }
 
   return (

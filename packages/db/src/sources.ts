@@ -336,6 +336,32 @@ export async function failIngest({
   });
 }
 
+/**
+ * Records that the browser couldn't upload a file, with the same outcome as
+ * `failIngest`. Only applies while the source still waits for its upload, so
+ * a run the file did start wins. Returns false otherwise.
+ */
+export async function failUpload(
+  workspaceId: string,
+  sourceId: string,
+  error: string,
+) {
+  return db.transaction(async (tx) => {
+    const source = await tx.orm.public.Source.select("kind", "status")
+      .where({ id: sourceId, workspaceId })
+      .forNoKeyUpdate()
+      .first();
+    if (source?.kind !== "file" || source.status !== "uploaded") {
+      return false;
+    }
+    const keepsAnswering = await sourceHasChunks(tx, workspaceId, sourceId);
+    await tx.orm.public.Source.where({ id: sourceId, workspaceId })
+      .select("id")
+      .update({ status: keepsAnswering ? "ready" : "failed", error });
+    return true;
+  });
+}
+
 /** For a repeated upload of the file the chunks already came from. */
 export async function markSourceReady(workspaceId: string, sourceId: string) {
   await db.orm.public.Source.where({ id: sourceId, workspaceId })

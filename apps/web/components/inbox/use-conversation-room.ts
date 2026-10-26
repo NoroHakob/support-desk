@@ -14,7 +14,7 @@ import { client } from "@/lib/orpc";
 export function useConversationRoom(conversationId: string) {
   const visitorTyping = useRemoteTyping();
   const agentDraft = useAgentDraft();
-  const { send } = useRealtimeRoom({
+  const { send, stopped } = useRealtimeRoom({
     party: "conversation",
     room: conversationId,
     schema: conversationEventSchema,
@@ -52,5 +52,6 @@ export function useConversationRoom(conversationId: string) {
     agentDraft: agentDraft.draft,
     onTypingInput: typing.onInput,
     stopTyping: typing.stop,
+    liveUpdatesStopped: stopped,
   };
 }

@@ -8,6 +8,7 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
+import { useState } from "react";
 import * as z from "zod";
 
 import { orpc } from "@/lib/orpc";
@@ -57,12 +58,26 @@ export function useInbox(openId: string | null) {
     );
   }
 
-  // A conflict means someone else moved the conversation: show what's true now.
-  function refresh() {
-    void queryClient.invalidateQueries({ queryKey: orpc.inbox.key() });
+  // Clears when the next action starts or another conversation opens, so it
+  // never sticks to a later success or another conversation.
+  const [failure, setFailure] = useState<{
+    id: string;
+    message: string;
+  } | null>(null);
+  if (failure && failure.id !== validOpenId) {
+    setFailure(null);
   }
 
-  const options = { onSuccess: save, onError: refresh };
+  const options = {
+    onMutate: () => setFailure(null),
+    onSuccess: save,
+    // A conflict means someone else moved the conversation: show what's true
+    // now.
+    onError: (error: unknown, { id }: { id: string }) => {
+      setFailure({ id, message: errorMessage(error) });
+      void queryClient.invalidateQueries({ queryKey: orpc.inbox.key() });
+    },
+  };
   const reply = useMutation(orpc.inbox.reply.mutationOptions(options));
   const takeOver = useMutation(orpc.inbox.takeOver.mutationOptions(options));
   const handBack = useMutation(orpc.inbox.handBack.mutationOptions(options));
@@ -85,7 +100,6 @@ export function useInbox(openId: string | null) {
   );
 
   const mutations = [reply, takeOver, handBack, close];
-  const failed = mutations.find((mutation) => mutation.isError);
 
   const actions: InboxActions = {
     reply: (id, body) => reply.mutateAsync({ id, body }),
@@ -101,6 +115,6 @@ export function useInbox(openId: string | null) {
     actions,
     markRead: (id: string) => markRead.mutate({ id }),
     busy: mutations.some((mutation) => mutation.isPending),
-    error: failed ? errorMessage(failed.error) : null,
+    error: failure?.message ?? null,
   };
 }

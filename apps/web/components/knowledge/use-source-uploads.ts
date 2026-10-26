@@ -44,6 +44,17 @@ export function useSourceUploads() {
       if (!response.ok) {
         throw new Error(`Upload failed with status ${response.status}.`);
       }
+    } catch (error) {
+      // If this fails too, the 15-minute sweep marks the source.
+      await client.knowledge
+        .failUpload({ id: upload.source.id })
+        .then((source) =>
+          queryClient.setQueryData(orpc.knowledge.sources.queryKey(), (list) =>
+            upsertSource(list, source),
+          ),
+        )
+        .catch(() => undefined);
+      throw error;
     } finally {
       setUploading(upload.source.id, false);
     }

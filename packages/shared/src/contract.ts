@@ -172,6 +172,18 @@ export const contract = {
       )
       .input(createSourceUploadInputSchema)
       .output(sourceUploadSchema),
+    failUpload: oc
+      .meta(
+        openapi({
+          method: "POST",
+          path: "/knowledge/sources/{id}/upload-failed",
+          summary: "Report that a file couldn't be uploaded",
+          tags: ["Knowledge base"],
+        }),
+      )
+      .errors(sourceErrors)
+      .input(sourceIdInputSchema)
+      .output(sourceSchema),
     createTextSource: oc
       .meta(
         openapi({
