@@ -96,7 +96,9 @@ Planned Oct 26, 2026 (phase 8). Production is the Neon `production` branch, the 
 ### Owner allowlist
 
 - Only emails in `OWNER_EMAILS` (server-only, comma-separated, case-insensitive) can sign up, create a workspace or open the dashboard. Visitors in the widget are unaffected. This narrows PRD section 3 ("anyone can sign up") for the live site.
+- `OWNER_EMAILS="*"` opens sign-up to everyone, in any environment (added Oct 27, 2026), which matches PRD section 3.
 - Without `OWNER_EMAILS`, everyone is allowed outside production and nobody in production.
+- The sign-up page shows the "invite-only" line only while the list is closed (a real list, or unset in production), through `isSignUpOpen()`.
 - Checked in three places (`apps/web/lib/auth/owners.ts`):
   - `/api/auth` rejects email sign-up and emailed codes (sign-in codes create accounts) for unapproved emails before Neon Auth sees them, so they get no account and no email.
   - `sessionProcedure` rejects unapproved owners on every owner procedure.

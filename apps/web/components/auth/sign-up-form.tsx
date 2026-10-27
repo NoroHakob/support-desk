@@ -28,7 +28,7 @@ import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth/client";
 import { verifyEmailHref } from "@/lib/auth/routes";
 
-export function SignUpForm() {
+export function SignUpForm({ inviteOnly }: { inviteOnly: boolean }) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const {
@@ -63,7 +63,11 @@ export function SignUpForm() {
       <FieldGroup>
         <AuthHeading
           title="Create your account"
-          description="SupportDesk is invite-only for now. Sign up with an approved email."
+          description={
+            inviteOnly
+              ? "SupportDesk is invite-only for now. Sign up with an approved email."
+              : undefined
+          }
         />
         <Field data-invalid={!!errors.name}>
           <FieldLabel htmlFor="name">Name</FieldLabel>

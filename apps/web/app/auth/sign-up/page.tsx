@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { SignUpForm } from "@/components/auth/sign-up-form";
+import { isSignUpOpen } from "@/lib/auth/owners";
 import { auth } from "@/lib/auth/server";
 
 export const metadata: Metadata = { title: "Sign up" };
@@ -13,5 +14,5 @@ export default async function SignUpPage() {
     redirect("/dashboard");
   }
 
-  return <SignUpForm />;
+  return <SignUpForm inviteOnly={!isSignUpOpen()} />;
 }

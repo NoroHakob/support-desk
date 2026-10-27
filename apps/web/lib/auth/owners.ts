@@ -10,13 +10,21 @@ function ownerEmails() {
 }
 
 /**
- * Whether an owner's email is on the allowlist. Without OWNER_EMAILS,
- * everyone is allowed outside production and nobody in it.
+ * Whether every email may sign up: OWNER_EMAILS is "*", or it's unset
+ * outside production.
  */
-export function isApprovedOwner(email: string) {
+export function isSignUpOpen() {
   const emails = ownerEmails();
   if (emails.length === 0) {
     return process.env.NODE_ENV !== "production";
   }
-  return emails.includes(email.trim().toLowerCase());
+  return emails.includes("*");
+}
+
+/**
+ * Whether an owner's email is on the allowlist. Without OWNER_EMAILS,
+ * everyone is allowed outside production and nobody in it.
+ */
+export function isApprovedOwner(email: string) {
+  return isSignUpOpen() || ownerEmails().includes(email.trim().toLowerCase());
 }
