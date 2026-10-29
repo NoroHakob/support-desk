@@ -8,13 +8,21 @@ import {
   parseWidgetToHost,
   type HostToWidget,
   type WidgetPlacement,
+  type WidgetReplyAuthor,
 } from "../lib/widget-messages";
 
 export interface SupportDeskApi {
   open: () => void;
   close: () => void;
   toggle: () => void;
+  send: (body: string) => void;
   isReady: () => boolean;
+}
+
+export interface SupportDeskReply {
+  id: string;
+  author: WidgetReplyAuthor;
+  body: string;
 }
 
 declare global {
@@ -25,6 +33,7 @@ declare global {
 
 const ROOT_ID = "supportdesk-widget";
 const READY_EVENT = "supportdesk:ready";
+const REPLY_EVENT = "supportdesk:reply";
 const PHONE_MAX_WIDTH = 640;
 
 const CHAT_ICON =
@@ -98,6 +107,8 @@ function start() {
   let ready = false;
   // An open() that arrives before the iframe is ready waits for it.
   let openWhenReady = false;
+  // Messages sent before the iframe is ready, posted once it is.
+  const queuedBodies: string[] = [];
 
   function post(message: HostToWidget) {
     frame.contentWindow?.postMessage(message, appOrigin);
@@ -149,6 +160,16 @@ function start() {
         openWhenReady = !openWhenReady;
       }
     },
+    send(body) {
+      if (typeof body !== "string" || body.trim() === "") return;
+      if (ready) {
+        if (!open) setOpen(true);
+        post({ type: "supportdesk:send", body });
+      } else {
+        openWhenReady = true;
+        queuedBodies.push(body);
+      }
+    },
     isReady: () => ready,
   };
 
@@ -172,10 +193,22 @@ function start() {
           openWhenReady = false;
           if (!open) setOpen(true);
         }
+        for (const body of queuedBodies.splice(0)) {
+          post({ type: "supportdesk:send", body });
+        }
         break;
       case "supportdesk:close":
         if (open) setOpen(false);
         break;
+      case "supportdesk:reply": {
+        const detail: SupportDeskReply = {
+          id: message.id,
+          author: message.author,
+          body: message.body,
+        };
+        window.dispatchEvent(new CustomEvent(REPLY_EVENT, { detail }));
+        break;
+      }
     }
   });
 

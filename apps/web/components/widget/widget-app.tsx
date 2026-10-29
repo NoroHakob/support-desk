@@ -91,6 +91,8 @@ export function WidgetApp({
   const conversationsKey = widgetOrpc.widget.conversations.queryKey();
   const [sessionReady, setSessionReady] = useState(false);
   const contextRef = useRef<PageContext>({ page: "", referrer: "" });
+  const hostOriginRef = useRef<string | null>(null);
+  const sendFromHostRef = useRef<((body: string) => void) | null>(null);
   const startingRef = useRef<Promise<void> | null>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
 
@@ -128,16 +130,31 @@ export function WidgetApp({
       if (event.source !== window.parent) return;
       const message = parseHostToWidget(event.data);
       if (!message) return;
-      contextRef.current = { page: message.page, referrer: message.referrer };
+      hostOriginRef.current = event.origin;
       switch (message.type) {
         case "supportdesk:context":
+          contextRef.current = {
+            page: message.page,
+            referrer: message.referrer,
+          };
           if (readStoredToken(workspaceId)) void startSession(false);
           break;
         case "supportdesk:open":
+          contextRef.current = {
+            page: message.page,
+            referrer: message.referrer,
+          };
           void startSession(false);
           void refetchConfig();
           composerRef.current?.focus();
           break;
+        case "supportdesk:send": {
+          const parsed = visitorMessageInputSchema.safeParse({
+            body: message.body,
+          });
+          if (parsed.success) sendFromHostRef.current?.(parsed.data.body);
+          break;
+        }
         default:
           return assertNever(message);
       }
@@ -191,6 +208,9 @@ export function WidgetApp({
         upsertConversation(current, conversation),
       ),
   });
+  useEffect(() => {
+    sendFromHostRef.current = send.mutate;
+  }, [send.mutate]);
   const requestHuman = useMutation({
     mutationFn: () => withSession(() => widgetClient.widget.requestHuman()),
     onSuccess: (conversation) =>
@@ -198,6 +218,40 @@ export function WidgetApp({
         upsertConversation(current, conversation),
       ),
   });
+
+  // History that's already there when the widget loads is never announced.
+  const seenMessageIdsRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const data = conversations.data;
+    if (!data) return;
+    const messages = data.flatMap((conversation) => conversation.messages);
+    const seen = seenMessageIdsRef.current;
+    if (!seen) {
+      seenMessageIdsRef.current = new Set(messages.map(({ id }) => id));
+      return;
+    }
+    for (const message of messages) {
+      if (seen.has(message.id)) continue;
+      seen.add(message.id);
+      const origin = hostOriginRef.current;
+      if (
+        (message.author === "agent" || message.author === "member") &&
+        origin &&
+        window.parent !== window
+      ) {
+        // Replies carry conversation text, so only the host page gets them.
+        window.parent.postMessage(
+          {
+            type: "supportdesk:reply",
+            id: message.id,
+            author: message.author,
+            body: message.body,
+          } satisfies WidgetToHost,
+          origin,
+        );
+      }
+    }
+  }, [conversations.data]);
 
   const list = conversations.data ?? [];
   const latest = list.at(-1);

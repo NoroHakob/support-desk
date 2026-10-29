@@ -6,13 +6,22 @@ export type WidgetPlacement = "bottom-left" | "bottom-right";
 
 export type PageContext = { page: string; referrer: string };
 
+export type WidgetReplyAuthor = "agent" | "member";
+
 export type WidgetToHost =
   | { type: "supportdesk:ready"; position: WidgetPlacement; accentHex: string }
-  | { type: "supportdesk:close" };
+  | { type: "supportdesk:close" }
+  | {
+      type: "supportdesk:reply";
+      id: string;
+      author: WidgetReplyAuthor;
+      body: string;
+    };
 
 export type HostToWidget =
   | ({ type: "supportdesk:context" } & PageContext)
-  | ({ type: "supportdesk:open" } & PageContext);
+  | ({ type: "supportdesk:open" } & PageContext)
+  | { type: "supportdesk:send"; body: string };
 
 function record(data: unknown): Record<string, unknown> | null {
   return typeof data === "object" && data !== null
@@ -37,6 +46,19 @@ export function parseWidgetToHost(data: unknown): WidgetToHost | null {
     }
     case "supportdesk:close":
       return { type: "supportdesk:close" };
+    case "supportdesk:reply": {
+      const id = message["id"];
+      const author = message["author"];
+      const body = message["body"];
+      if (
+        typeof id === "string" &&
+        (author === "agent" || author === "member") &&
+        typeof body === "string"
+      ) {
+        return { type: "supportdesk:reply", id, author, body };
+      }
+      return null;
+    }
     default:
       return null;
   }
@@ -45,6 +67,10 @@ export function parseWidgetToHost(data: unknown): WidgetToHost | null {
 export function parseHostToWidget(data: unknown): HostToWidget | null {
   const message = record(data);
   const type = message?.["type"];
+  if (type === "supportdesk:send") {
+    const body = message?.["body"];
+    return typeof body === "string" ? { type, body } : null;
+  }
   if (type !== "supportdesk:context" && type !== "supportdesk:open") {
     return null;
   }
