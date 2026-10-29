@@ -10,7 +10,21 @@ import {
   type WidgetPlacement,
 } from "../lib/widget-messages";
 
+export interface SupportDeskApi {
+  open: () => void;
+  close: () => void;
+  toggle: () => void;
+  isReady: () => boolean;
+}
+
+declare global {
+  interface Window {
+    SupportDesk?: SupportDeskApi;
+  }
+}
+
 const ROOT_ID = "supportdesk-widget";
+const READY_EVENT = "supportdesk:ready";
 const PHONE_MAX_WIDTH = 640;
 
 const CHAT_ICON =
@@ -81,6 +95,9 @@ function start() {
   document.body.append(root);
 
   let open = false;
+  let ready = false;
+  // An open() that arrives before the iframe is ready waits for it.
+  let openWhenReady = false;
 
   function post(message: HostToWidget) {
     frame.contentWindow?.postMessage(message, appOrigin);
@@ -113,6 +130,28 @@ function start() {
 
   launcher.addEventListener("click", () => setOpen(!open));
 
+  window.SupportDesk = {
+    open() {
+      if (ready) {
+        if (!open) setOpen(true);
+      } else {
+        openWhenReady = true;
+      }
+    },
+    close() {
+      openWhenReady = false;
+      if (open) setOpen(false);
+    },
+    toggle() {
+      if (ready) {
+        setOpen(!open);
+      } else {
+        openWhenReady = !openWhenReady;
+      }
+    },
+    isReady: () => ready,
+  };
+
   window.addEventListener("message", (event) => {
     if (event.origin !== appOrigin || event.source !== frame.contentWindow) {
       return;
@@ -125,6 +164,14 @@ function start() {
         launcher.style.backgroundColor = message.accentHex;
         launcher.dataset["ready"] = "true";
         post({ type: "supportdesk:context", ...pageContext() });
+        if (!ready) {
+          ready = true;
+          window.dispatchEvent(new Event(READY_EVENT));
+        }
+        if (openWhenReady) {
+          openWhenReady = false;
+          if (!open) setOpen(true);
+        }
         break;
       case "supportdesk:close":
         if (open) setOpen(false);
